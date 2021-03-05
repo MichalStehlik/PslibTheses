@@ -1,0 +1,70 @@
+@import-normalize;
+@font-face {
+  font-family: "OpenSans";
+  font-style: normal;
+  font-weight: 400;
+  src: url("./assets/fonts/OpenSans-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "OpenSans";
+  font-style: italic;
+  font-weight: 400;
+  src:  url("./assets/fonts/OpenSans-Italic.ttf") format("truetype");
+}
+@font-face {
+  font-family: "OpenSans";
+  font-style: normal;
+  font-weight: 600 700;
+  src: url("./assets/fonts/OpenSans-Bold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "OpenSans";
+  font-style: italic;
+  font-weight: 600 700;
+  src: url("./assets/fonts/OpenSans-BoldItalic.ttf") format("truetype");
+}
+@font-face {
+  font-family: "OpenSans";
+  font-style: normal;
+  font-weight: 800 900;
+  src: url("./assets/fonts/OpenSans-ExtraBold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "OpenSans";
+  font-style: italic;
+  font-weight: 800 900;
+  src: url("./assets/fonts/OpenSans-ExtraBoldItalic.ttf") format("truetype");
+}
+@font-face {
+  font-family: "OpenSans";
+  font-style: normal;
+  font-weight: 100 300;
+  src: url("./assets/fonts/OpenSans-Light.ttf") format("truetype");
+}
+@font-face {
+  font-family: "OpenSans";
+  font-style: italic;
+  font-weight: 100 300;
+  src: url("./assets/fonts/OpenSans-LightItalic.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Quicksand";
+  src: url("./assets/fonts/Quicksand-VariableFont_wght.ttf") format("truetype");
+}
+
+code {
+  font-family: source-code-pro, Consolas, 'Courier New',
+    monospace;
+}
+:root {
+  font-size: 10pt;
+  font-family: OpenSans, sans-serif;
+  height: 100%;
+}
+body {
+  height: 100%;
+  margin: 0;
+}
+#root {
+  height: 100%;
+}

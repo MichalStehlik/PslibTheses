@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="ClientApp\public\images\" />
     <Folder Include="Emails\" />
     <Folder Include="Prints\" />
     <Folder Include="Services\" />

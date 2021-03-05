@@ -116,7 +116,7 @@ namespace PslibTheses.Controllers
                 Updated = i.Updated,
                 Targets = i.IdeaTargets.Select(it => it.Target)
             }).ToList();
-            int count = ideasVM.Count();
+            int count = ideasVM.Count;
             return Ok(new { total = total, filtered = filtered, count = count, page = page, pages = ((pagesize == 0) ? 0 : Math.Ceiling((double)filtered / pagesize)), data = ideasVM });
         }
 

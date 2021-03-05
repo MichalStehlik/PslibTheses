@@ -87,7 +87,7 @@ namespace PslibTheses.Controllers
                 targets = targets/*.Skip(page * pagesize)*/.Take(pagesize);
             }
             var result = targets.ToList();
-            int count = result.Count();
+            int count = result.Count;
             return Ok(new { total = total, filtered = filtered, count = count, page = page, pages = ((pagesize == 0) ? 0 : Math.Ceiling((double)filtered / pagesize)), data = result });
         }
 
