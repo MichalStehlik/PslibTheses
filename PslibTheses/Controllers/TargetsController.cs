@@ -66,29 +66,20 @@ namespace PslibTheses.Controllers
             if (!String.IsNullOrEmpty(text))
                 targets = targets.Where(t => (t.Text.Contains(text)));
             int filtered = targets.CountAsync().Result;
-            switch (order)
+            targets = order switch
             {
-                case "text":
-                    targets = targets.OrderBy(t => t.Text);
-                    break;
-                case "text_desc":
-                    targets = targets.OrderByDescending(t => t.Text);
-                    break;
-                case "id_desc":
-                    targets = targets.OrderByDescending(t => t.Id);
-                    break;
-                case "id":
-                default:
-                    targets = targets.OrderBy(t => t.Id);
-                    break;
-            }
+                "text" => targets.OrderBy(t => t.Text),
+                "text_desc" => targets.OrderByDescending(t => t.Text),
+                "id_desc" => targets.OrderByDescending(t => t.Id),
+                _ => targets.OrderBy(t => t.Id),
+            };
             if (pagesize != 0)
             {
                 targets = targets/*.Skip(page * pagesize)*/.Take(pagesize);
             }
             var result = targets.ToList();
             int count = result.Count;
-            return Ok(new { total = total, filtered = filtered, count = count, page = page, pages = ((pagesize == 0) ? 0 : Math.Ceiling((double)filtered / pagesize)), data = result });
+            return Ok(new { total, filtered, count, page, pages = ((pagesize == 0) ? 0 : Math.Ceiling((double)filtered / pagesize)), data = result });
         }
 
         // GET: Targets/5
@@ -162,7 +153,7 @@ namespace PslibTheses.Controllers
         [Authorize(Policy = "Administrator")]
         public async Task<ActionResult<Target>> PostTarget(TargetIM input)
         {
-            Target target = new Target
+            Target target = new()
             {
                 Text = input.Text,
                 Color = ColorTranslator.FromHtml(input.Color),

@@ -1,13 +1,9 @@
-﻿using PslibTheses.Model;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace PslibTheses.ViewModels
 {
-    public class WorkVM
+    public class WorkBaseIM
     {
         [Required]
         public int Id { get; set; }
@@ -20,15 +16,8 @@ namespace PslibTheses.ViewModels
         public Guid UserId { get; set; }
         public Guid AuthorId { get; set; }
         public Guid ManagerId { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime Updated { get; set; }
-        public WorkState State { get; set; } = WorkState.InPreparation;
+        [Required]
         public int SetId { get; set; }
-        public int MaterialCosts { get; set; } = 0;
-        public int MaterialCostsProvidedBySchool { get; set; } = 0;
-        public int ServicesCosts { get; set; } = 0;
-        public int ServicesCostsProvidedBySchool { get; set; } = 0;
-        public string DetailExpenditures { get; set; }
         public string ClassName { get; set; }
         public string RepositoryURL { get; set; }
     }

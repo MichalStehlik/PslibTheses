@@ -26,7 +26,7 @@ namespace PslibTheses.Controllers
         private readonly ThesesContext _context;
         private readonly ILogger<UsersController> _logger;
         private readonly IAuthorizationService _authorizationService;
-        private int iconSize = 64;
+        private readonly int iconSize = 64;
 
         public UsersController(ThesesContext context, ILogger<UsersController> logger, IAuthorizationService authorizationService)
         {
@@ -109,8 +109,8 @@ namespace PslibTheses.Controllers
                 users = users.Skip(page * pagesize).Take(pagesize);
             }
             var result = users.ToList();
-            int count = result.Count();
-            return Ok(new { total = total, filtered = filtered, count = count, page = page, pages = ((pagesize == 0) ? 0 : Math.Ceiling((double)filtered / pagesize)), data = result });
+            int count = result.Count;
+            return Ok(new { total, filtered, count, page, pages = ((pagesize == 0) ? 0 : Math.Ceiling((double)filtered / pagesize)), data = result });
         }
 
         // GET: /Users/aaa
@@ -382,12 +382,11 @@ namespace PslibTheses.Controllers
                         var type = file.ContentType;
                         var filename = file.FileName;
                         Console.WriteLine("File:" + filename + " " + size + " " + type);
-                        MemoryStream ims = new MemoryStream();
-                        MemoryStream oms = new MemoryStream();
+                        MemoryStream ims = new();
+                        MemoryStream oms = new();
                         file.CopyTo(ims);
 
-                        IImageFormat format;
-                        using (Image image = Image.Load(ims.ToArray(), out format))
+                        using (Image image = Image.Load(ims.ToArray(), out IImageFormat format))
                         {
                             int largestSize = Math.Max(image.Height, image.Width);
                             bool landscape = image.Width > image.Height;

@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PslibTheses.Data;
 using PslibTheses.Model;
+using PslibTheses.Services;
 using Serilog;
 
 namespace PslibTheses
@@ -78,6 +79,8 @@ namespace PslibTheses
                           .AllowAnyMethod();
                 });
             });
+
+            services.AddScoped<RazorViewToStringRenderer>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

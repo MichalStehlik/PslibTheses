@@ -32,8 +32,10 @@
   <ItemGroup>
     <Folder Include="ClientApp\public\images\" />
     <Folder Include="Emails\" />
-    <Folder Include="Prints\" />
-    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Prints\Pages\Shared\_Layout.cshtml" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

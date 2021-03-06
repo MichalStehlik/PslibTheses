@@ -1,0 +1,294 @@
+﻿@using PslibTheses.Prints.ViewModels
+@model AssignmentVM
+<header id="document-title">
+    <h1>Přihláška k ročníkové práci</h1>
+</header>
+<section id="work-data">
+    <table>
+        <tr>
+            <th>Jméno a příjmení studenta</th>
+            <th>Třída</th>
+        </tr>
+        <tr>
+            <td>@Model.AuthorName</td>
+            @if (String.IsNullOrEmpty(Model.ClassName))
+            {
+                <td>&ndash;</td>
+            }
+            else
+            {
+                <td>@Model.ClassName</td>
+            }
+        </tr>
+        <tr>
+            <th>Název práce</th>
+            <th>Školní rok</th>
+        </tr>
+        <tr>
+            <td>@Model.Title</td>
+            @if (String.IsNullOrEmpty(Model.SetName))
+            {
+                <td>&ndash;</td>
+            }
+            else
+            {
+                <td>@Model.SetName</td>
+            }
+        </tr>
+    </table>
+</section>
+<section>
+    <h2>Přidělené role</h2>
+    @if (Model.Roles.Count > 0)
+    {
+        <table class="fixed">
+            <tr>
+                @foreach (var role in Model.Roles)
+                {
+                    <th>@role.SetRole.Name</th>
+                }
+            </tr>
+            <tr>
+                @foreach (var role in Model.Roles)
+                {
+                    <td class="vertical-top">
+                        @foreach (var wru in role.WorkRoleUsers)
+                        {
+                            <div class="signature signature-space">Podpis</div>
+                            @if (wru.User != null)
+                            {
+                                <div class="center">@wru.User.Name</div>
+                            }
+                            else
+                            {
+                                <div class="center"></div>
+                            }
+
+                        }
+                    </td>
+                }
+            </tr>
+        </table>
+    }
+    else
+    {
+        <p>Bez rolí k tisku.</p>
+    }
+</section>
+<section id="legal">
+    <table class="table no-bold">
+        <tr>
+            <th class="center" rowspan="4" style="width: 15%;">Obecná ustanovení</th>
+            <td>
+                Vypracování a odevzdání práce proběhne v&nbsp;souladu s&nbsp;platnými normami
+                (vyhláška 177/2009&nbsp;Sb.) a aktuálním dokumentem <q>Pokyny k vypracování prací</q>
+                vydaným školou.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Práce bude hodnocena z hlediska jejího praktického využití, zvládnutí
+                dokumentace po věcné i formální stránce a obhajoby celé práce. Student
+                byl seznámen s kritérii hodnocení maturitní práce.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Práce bude odevzdána ve dvou stejnopisech vázaných pevnou nebo kroužkovou vazbou.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Veškeré náklady na RP včetně vyhotovení obou tištěných kopií si student hradí sám.
+            </td>
+        </tr>
+        <tr>
+            <th class="center" rowspan="4" style="width: 15%;">Licenční ujednání</th>
+            <td>
+                Ve smyslu §&nbsp;60 (Školní dílo) autorského zákona č.&nbsp;121/2000&nbsp;Sb. poskytuji SPŠSE a VOŠ
+                Liberec výhradní a neomezená práva k&nbsp;využití této mé maturitní práce.
+            </td>
+        </tr>
+        <tr>
+            <td>Bez svolení školy se zdržím jakéhokoliv komerčního využití mé práce.</td>
+        </tr>
+        <tr>
+            <td>
+                Pro výukové účely a prezentaci školy se vzdávám nároku na odměnu za užití díla.
+            </td>
+        </tr>
+    </table>
+</section>
+<section id="fundings">
+    <h2>Finanční rozvaha - odhad celkových nákladů</h2>
+    <table class="table">
+        <tr>
+            <th>V Kč</th>
+            <th>Náklady celkem</th>
+            <th>Hrazené školou</th>
+        </tr>
+        <tr>
+            <th>Výrobní</th>
+            <td>@Model.MaterialCosts</td>
+            <td>@Model.MaterialCostsProvidedBySchool</td>
+        </tr>
+        <tr>
+            <th>Na služby</th>
+            <td>@Model.ServicesCosts</td>
+            <td>@Model.ServicesCostsProvidedBySchool</td>
+        </tr>
+    </table>
+    <p>Jedná se o RP, jejíž vypracování si škola vyžádala? <strong>Ano</strong> &ndash; <strong>Ne</strong></p>
+</section>
+<section id="signatures">
+    <table class="fixed">
+        <tbody>
+            <tr>
+                <th colspan="2">Podpis studenta (vyjadřuje souhlas s uvedenými údaji a ujednáními)</th>
+            </tr>
+            <tr>
+                <td class="left half-width">V Liberci @Model.Date</td>
+                <td class="signature half-width">Podpis</td>
+            </tr>
+        </tbody>
+        @if (Model.HasConsultantSignature == true)
+        {
+            <tbody>
+                <tr>
+                    <th colspan="2">Konzultant</th>
+                </tr>
+                <tr>
+                    <td class="left half-width">Práci podporuji</td>
+                    <td class="signature half-width">Podpis</td>
+                </tr>
+            </tbody>
+        }
+        @if (Model.HasDepartmentHeadSignature == true)
+        {
+            <tbody>
+                <tr>
+                    <th colspan="2">Předmětová komise</th>
+                </tr>
+                <tr>
+                    <td class="left half-width">Práci doporučuji</td>
+                    <td class="signature half-width">Podpis</td>
+                </tr>
+            </tbody>
+        }
+        @if (Model.HasClassTeacherSignature == true)
+        {
+            <tbody>
+                <tr>
+                    <th colspan="2">Třídní učitel</th>
+                </tr>
+                <tr>
+                    <td class="left half-width">Práci doporučuji</td>
+                    <td class="signature half-width">Podpis</td>
+                </tr>
+            </tbody>
+        }
+        @if (Model.HasGarantSignature == true)
+        {
+            <tbody>
+                <tr>
+                    <th colspan="2">Garant oboru</th>
+                </tr>
+                <tr>
+                    <td class="left half-width">Práci doporučuji</td>
+                    <td class="signature half-width">Podpis</td>
+                </tr>
+            </tbody>
+        }
+        @if (Model.HasDirectorSignature == true)
+        {
+            <tbody>
+                <tr>
+                    <th colspan="2">Ředitel školy</th>
+                </tr>
+                <tr>
+                    <td class="left half-width">Práci doporučuji</td>
+                    <td class="signature half-width">Podpis</td>
+                </tr>
+            </tbody>
+        }
+    </table>
+</section>
+<header id="page-title" class="new-page">
+    <h1>Zadání ročníkové práce</h1>
+</header>
+<section id="work-theme">
+    <table>
+        <tr>
+            <th class="half-width">Název</th>
+            <th>Předmět</th>
+        </tr>
+        <tr>
+            <td>@Model.Title</td>
+            <td>@Model.Subject</td>
+        </tr>
+        <tr>
+            <th colspan="2">Téma</th>
+        </tr>
+        <tr>
+            @if (String.IsNullOrEmpty(Model.Description))
+            {
+                <td>&ndash;</td>
+            }
+            else
+            {
+                <td>@Html.Raw(Model.Description)</td>
+            }
+        </tr>
+        <tr>
+            <th colspan="2">Použité prostředky</th>
+        </tr>
+        <tr>
+            @if (String.IsNullOrEmpty(Model.Resources))
+            {
+                <td>&ndash;</td>
+            }
+            else
+            {
+                <td>@Model.Resources</td>
+            }
+        </tr>
+    </table>
+</section>
+<section>
+    <h2>Cíle práce</h2>
+    @if (Model.Goals.Count > 0)
+    {
+        <table class="table">
+            @foreach (var goal in Model.Goals)
+            {
+                <tr>
+                    <td class="number-column">@goal.Order</td>
+                    <td>@goal.Text</td>
+                </tr>
+            }
+        </table>
+    }
+    else
+    {
+        <p>Práce nemá žádné cíle.</p>
+    }
+</section>
+<section>
+    <h2>Osnova práce</h2>
+    @if (Model.Outlines.Count > 0)
+    {
+        <table class="table">
+            @foreach (var outline in Model.Outlines)
+            {
+                <tr>
+                    <td class="number-column">@outline.Order</td>
+                    <td>@outline.Text</td>
+                </tr>
+            }
+        </table>
+    }
+    else
+    {
+        <p>Práce nemá žádné body osnovy.</p>
+    }
+</section>

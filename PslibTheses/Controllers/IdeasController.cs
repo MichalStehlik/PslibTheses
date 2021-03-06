@@ -81,7 +81,8 @@ namespace PslibTheses.Controllers
             if (offered != null)
                 if (offered == true) ideas = ideas.Where(i => (i.IdeaOffers.Count > 0)); else ideas = ideas.Where(i => (i.IdeaOffers.Count == 0));
             if (target != null)
-                ideas = ideas.Where(i => (i.IdeaTargets.Where(it => it.TargetId == target).Count() > 0));
+                //ideas = ideas.Where(i => (i.IdeaTargets.Where(it => it.TargetId == target).Count() > 0));
+                ideas = ideas.Where(i => (i.IdeaTargets.Any(it => it.TargetId == target)));
             int filtered = ideas.CountAsync().Result;
             ideas = order switch
             {
@@ -117,7 +118,7 @@ namespace PslibTheses.Controllers
                 Targets = i.IdeaTargets.Select(it => it.Target)
             }).ToList();
             int count = ideasVM.Count;
-            return Ok(new { total = total, filtered = filtered, count = count, page = page, pages = ((pagesize == 0) ? 0 : Math.Ceiling((double)filtered / pagesize)), data = ideasVM });
+            return Ok(new { total, filtered, count, page, pages = ((pagesize == 0) ? 0 : Math.Ceiling((double)filtered / pagesize)), data = ideasVM });
         }
 
         // GET: Ideas/5
@@ -208,7 +209,7 @@ namespace PslibTheses.Controllers
                 return NotFound();
             }
 
-            var user = _context.Users.FindAsync(input.UserId).Result;
+            User user = await _context.Users.FindAsync(input.UserId);
             if (user == null)
             {
                 return NotFound("User with Id equal to userId was not found");
@@ -330,7 +331,7 @@ namespace PslibTheses.Controllers
             var ideaTargets = _context.IdeaTargets
                 .Where(it => it.Idea == idea)
                 .OrderBy(it => it.Target.Text)
-                .Select(it => new { Text = it.Target.Text, Color = it.Target.Color, Id = it.Target.Id })
+                .Select(it => new { it.Target.Text, it.Target.Color, it.Target.Id })
                 .AsNoTracking();
             return Ok(ideaTargets);
         }
@@ -347,7 +348,7 @@ namespace PslibTheses.Controllers
         {
             var targets = _context.Targets
                 .OrderBy(t => t.Text)
-                .Select(t => new { Text = t.Text, Color = t.Color, Id = t.Id })
+                .Select(t => new { t.Text, t.Color, t.Id })
                 .AsNoTracking();
             return Ok(targets);
         }
@@ -375,7 +376,7 @@ namespace PslibTheses.Controllers
             var targets = _context.Targets
                 .OrderBy(t => t.Text)
                 .Where(t => !usedTargets.Contains(t.Id))
-                .Select(t => new { Text = t.Text, Color = t.Color, Id = t.Id })
+                .Select(t => new { t.Text, t.Color, t.Id })
                 .ToList();
             return Ok(targets);
         }
@@ -484,7 +485,7 @@ namespace PslibTheses.Controllers
 
             var goals = _context.IdeaGoals
                 .Where(ig => ig.Idea == idea)
-                .Select(ig => new { IdeaId = ig.IdeaId, Order = ig.Order, Text = ig.Text })
+                .Select(ig => new { ig.IdeaId, ig.Order, ig.Text })
                 .OrderBy(ig => ig.Order)
                 .AsNoTracking();
             return Ok(goals);
@@ -508,7 +509,7 @@ namespace PslibTheses.Controllers
 
             var goal = _context.IdeaGoals
                 .Where(ig => ig.Idea == idea && ig.Order == order)
-                .Select(ig => new { IdeaId = ig.IdeaId, ig.Order, ig.Text })
+                .Select(ig => new { ig.IdeaId, ig.Order, ig.Text })
                 .FirstOrDefault();
             if (goal == null)
             {
@@ -555,7 +556,7 @@ namespace PslibTheses.Controllers
             var newGoal = new IdeaGoal { IdeaId = id, Order = maxGoalOrder + 1, Text = goalText.Text };
             _context.IdeaGoals.Add(newGoal);
             await _context.SaveChangesAsync();
-            return CreatedAtAction("GetIdeaGoal", new { id = newGoal.IdeaId, order = newGoal.Order }, new { IdeaId = id, Order = maxGoalOrder + 1, Text = goalText.Text });
+            return CreatedAtAction("GetIdeaGoal", new { id = newGoal.IdeaId, order = newGoal.Order }, new { IdeaId = id, Order = maxGoalOrder + 1, goalText.Text });
         }
 
         // PUT: Ideas/5/goals
@@ -682,7 +683,7 @@ namespace PslibTheses.Controllers
 
             if (newOrder > maxOrder) newOrder = maxOrder;
 
-            IdeaGoal temp = new IdeaGoal { IdeaId = id, Order = newOrder, Text = goal.Text }; // future record
+            IdeaGoal temp = new() { IdeaId = id, Order = newOrder, Text = goal.Text }; // future record
             _context.IdeaGoals.Remove(goal); // remove old record, we backup it in temp
             _context.SaveChanges();
 
@@ -768,7 +769,7 @@ namespace PslibTheses.Controllers
                 return Unauthorized("only owner or privileged user can delete goals inside an idea");
             }
 
-            IdeaGoal removedGoal = new IdeaGoal { Id = goal.Id, IdeaId = id, Order = order, Text = goal.Text };
+            IdeaGoal removedGoal = new() { Id = goal.Id, IdeaId = id, Order = order, Text = goal.Text };
             int maxGoalOrder;
             try
             {
@@ -815,7 +816,7 @@ namespace PslibTheses.Controllers
 
             var contents = _context.IdeaOutlines
                 .Where(ic => ic.Idea == idea)
-                .Select(ic => new { IdeaId = ic.IdeaId, Order = ic.Order, Text = ic.Text })
+                .Select(ic => new { ic.IdeaId, ic.Order, ic.Text })
                 .OrderBy(ic => ic.Order)
                 .AsNoTracking();
             return Ok(contents);
@@ -839,7 +840,7 @@ namespace PslibTheses.Controllers
 
             var content = _context.IdeaOutlines
                 .Where(ig => ig.Idea == idea && ig.Order == order)
-                .Select(ig => new { IdeaId = ig.IdeaId, ig.Order, ig.Text })
+                .Select(ig => new { ig.IdeaId, ig.Order, ig.Text })
                 .FirstOrDefault();
             if (content == null)
             {
@@ -886,7 +887,7 @@ namespace PslibTheses.Controllers
             var newOutline = new IdeaOutline { IdeaId = id, Order = maxOrder + 1, Text = outlineText.Text };
             _context.IdeaOutlines.Add(newOutline);
             await _context.SaveChangesAsync();
-            return CreatedAtAction("GetIdeaOutline", new { id = newOutline.IdeaId, order = newOutline.Order }, new { IdeaId = id, Order = maxOrder + 1, Text = outlineText.Text });
+            return CreatedAtAction("GetIdeaOutline", new { id = newOutline.IdeaId, order = newOutline.Order }, new { IdeaId = id, Order = maxOrder + 1, outlineText.Text });
         }
 
         // PUT: Ideas/5/outlines
@@ -1013,7 +1014,7 @@ namespace PslibTheses.Controllers
 
             if (newOrder > maxOrder) newOrder = maxOrder;
 
-            IdeaOutline temp = new IdeaOutline { IdeaId = id, Order = newOrder, Text = outline.Text }; // future record
+            IdeaOutline temp = new() { IdeaId = id, Order = newOrder, Text = outline.Text }; // future record
             _context.IdeaOutlines.Remove(outline); // remove old record, we backup it in temp
             _context.SaveChanges();
 
@@ -1031,7 +1032,7 @@ namespace PslibTheses.Controllers
                 for (int i = order + 1; i <= newOrder; i++)
                 {
                     var item = _context.IdeaOutlines.Where(ig => ig.Idea == idea && ig.Order == i).FirstOrDefault();
-                    if (item != null) item.Order = item.Order - 1;
+                    if (item != null) item.Order -= 1;
                     _context.SaveChanges();
                 }
             }
@@ -1100,7 +1101,7 @@ namespace PslibTheses.Controllers
                 return NotFound("outline not found");
             }
 
-            IdeaOutline removedOutline = new IdeaOutline { Id = outline.Id, IdeaId = id, Order = order, Text = outline.Text };
+            IdeaOutline removedOutline = new() { Id = outline.Id, IdeaId = id, Order = order, Text = outline.Text };
             int maxOrder;
             try
             {
