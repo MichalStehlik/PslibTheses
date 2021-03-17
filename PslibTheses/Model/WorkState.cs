@@ -10,8 +10,9 @@ namespace PslibTheses.Model
         InPreparation = 0,
         WorkedOut = 1,
         Failed = 2,
-        Completed = 3,
-        Undefended = 4,
-        Succesful = 5
+        Delivered = 3,
+        Evaluated = 4,
+        Successful = 5,
+        Unsuccessful = 6
     }
 }

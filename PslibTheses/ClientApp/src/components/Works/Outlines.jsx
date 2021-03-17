@@ -2,17 +2,15 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {DragItemsList} from "../common";
 import {useAppContext, ADD_MESSAGE} from "../../providers/ApplicationProvider";
 import {Loader, Paragraph, CardBody } from "../general";
-import {ADMIN_ROLE, EVALUATOR_ROLE} from "../../configuration/constants";
 import axios from "axios";
 
-const Outlines = props => {
-    const [{accessToken, profile}, dispatch] = useAppContext();
+const Outlines = ({ isEditable, id }) => {
+    const [{accessToken}, dispatch] = useAppContext();
     const [ list, setList ] = useState([]);
     const [ isLoading, setIsLoading ] = useState(true);
-    const [ isEditable, setIsEditable ] = useState(true);
     const fetchOutlines = useCallback(() => {
         setIsLoading(true);
-        axios.get(process.env.REACT_APP_API_URL + "/works/" + props.id + "/outlines",{
+        axios.get(process.env.REACT_APP_API_URL + "/works/" + id + "/outlines",{
             headers: {
                 Authorization: "Bearer " + accessToken,
                 "Content-Type": "application/json"
@@ -25,10 +23,10 @@ const Outlines = props => {
             setList([])
         });
         setIsLoading(false);
-    },[accessToken, props.id]);
+    },[accessToken, id]);
 
     const addOutline = useCallback((item) => {
-        axios.post(process.env.REACT_APP_API_URL + "/works/" + props.id + "/outlines",{text: item},{
+        axios.post(process.env.REACT_APP_API_URL + "/works/" + id + "/outlines",{text: item},{
             headers: {
                 Authorization: "Bearer " + accessToken,
                 "Content-Type": "application/json"
@@ -41,10 +39,10 @@ const Outlines = props => {
         .catch(error => {
             dispatch({type: ADD_MESSAGE, text: "Během přidávání bodu osnovy došlo k chybě. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3});
         });
-    },[props.id, dispatch, fetchOutlines, accessToken]);
+    },[id, dispatch, fetchOutlines, accessToken]);
 
-    const removeOutline = useCallback((id) => {
-        axios.delete(process.env.REACT_APP_API_URL + "/works/" + props.id + "/outlines/" + id, {
+    const removeOutline = useCallback((itemId) => {
+        axios.delete(process.env.REACT_APP_API_URL + "/works/" + id + "/outlines/" + itemId, {
             headers: {
                 Authorization: "Bearer " + accessToken,
                 "Content-Type": "application/json"
@@ -58,10 +56,10 @@ const Outlines = props => {
         .catch(error => {
             dispatch({type: ADD_MESSAGE, text: "Během odstraňování bodu osnovy došlo k chybě. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3});
         });
-    },[props.id, accessToken, dispatch, fetchOutlines]);
+    },[id, accessToken, dispatch, fetchOutlines]);
 
-    const updateOutline = useCallback((id, item) => {
-        axios.put(process.env.REACT_APP_API_URL + "/works/" + props.id + "/outlines/" + id, 
+    const updateOutline = useCallback((itemId, item) => {
+        axios.put(process.env.REACT_APP_API_URL + "/works/" + id + "/outlines/" + itemId, 
             {
                 text: item
             }, 
@@ -79,10 +77,10 @@ const Outlines = props => {
         .catch(error => {
             dispatch({type: ADD_MESSAGE, text: "Během aktualizace bod osnovy došlo k chybě. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3});
         });
-    },[props.id, accessToken, dispatch, fetchOutlines]);
+    },[id, accessToken, dispatch, fetchOutlines]);
 
     const moveOutline = useCallback((from, to) => {
-        axios.put(process.env.REACT_APP_API_URL + "/works/" + props.id + "/outlines/" + from + "/moveto/" + to,{},{
+        axios.put(process.env.REACT_APP_API_URL + "/works/" + id + "/outlines/" + from + "/moveto/" + to,{},{
             headers: {
                 Authorization: "Bearer " + accessToken,
                 "Content-Type": "application/json"
@@ -96,21 +94,9 @@ const Outlines = props => {
         .catch(error => {
             dispatch({type: ADD_MESSAGE, text: "Během změny pořadí bodů osnovy došlo k chybě. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3});
         });
-    },[props.id, accessToken, dispatch, fetchOutlines]);
+    },[id, accessToken, dispatch, fetchOutlines]);
 
     useEffect(()=>{ fetchOutlines(); },[fetchOutlines]);
-    useEffect(()=>{ 
-        setIsEditable(
-            (profile !== null) && (
-                (
-                    profile[ADMIN_ROLE] === "1" 
-                    || (profile.sub === props.authorId && props.data.state === 0) 
-                    || (profile.sub === props.managerId && props.data.state === 0)
-                    || (profile.sub === props.userId && props.data.state === 0)  
-                )
-            )
-        );
-     },[accessToken, profile, props.owner]);
     return(
         <>
         <CardBody>

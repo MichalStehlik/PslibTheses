@@ -44,7 +44,7 @@ export const Detail = props => {
         setIsLoading(false);
     },[accessToken, id]);
     useEffect(()=>{ dispatch({type: SET_TITLE, payload: "Detail námětu"});},[dispatch]);
-    useEffect(()=>{fetchData();},[]);
+    useEffect(()=>{fetchData();},[fetchData]);
     if (isLoading) {
         return <Loader size="2em"/>;
     } else if (error !== false) {

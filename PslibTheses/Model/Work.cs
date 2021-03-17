@@ -36,5 +36,7 @@ namespace PslibTheses.Model
         public ICollection<WorkGoal> Goals { get; } = new List<WorkGoal>();
         public ICollection<WorkOutline> Outlines { get; } = new List<WorkOutline>();
         public ICollection<WorkRole> Roles { get; } = new List<WorkRole>();
+        public ICollection<WorkNote> Notes { get; } = new List<WorkNote>();
+        public ICollection<WorkEvaluation> EvaluationAnswers { get; } = new List<WorkEvaluation>();
     }
 }

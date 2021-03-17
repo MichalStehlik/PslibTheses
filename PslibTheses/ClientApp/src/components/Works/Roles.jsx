@@ -1,12 +1,13 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {useAppContext, ADD_MESSAGE} from "../../providers/ApplicationProvider";
-import {Loader, Paragraph, CardBody, Table, TableHeader, TableBody, TableRow, TableFooter, HeadCell, DataCell, Alert, CardHeader, Subheading, AddMiniButton, RemoveMiniButton, TableWrapper, Button} from "../general";
-import {ADMIN_ROLE, EVALUATOR_ROLE} from "../../configuration/constants";
-import {SHOW_ROLES, INVITE_ROLES, ASSIGN_ROLES} from "./Detail";
+import {Loader, CardBody, Table, TableHeader, TableBody, TableRow, HeadCell, DataCell, Alert, CardHeader, Subheading, AddMiniButton, RemoveMiniButton, TableWrapper, Button, TableFooter} from "../general";
+import {ADMIN_ROLE, MANAGER_ROLE} from "../../configuration/constants";
+import {ASSIGN_ROLES} from "./Detail";
 import LoadedUser from "../common/LoadedUser";
 import DateTime from "../common/DateTime";
 import axios from "axios";
 import styled from 'styled-components';
+import TermRoleStats from "./TermRoleStats";
 
 const StyledUsersInRole = styled.nav`
 display: flex;
@@ -26,6 +27,11 @@ flex-direction: row;
 width: 100%;
 justify-content: start;
 padding: .5em;
+`;
+
+const TermDate = styled.span`
+font-weight: 100;
+font-size: small;
 `;
 
 const UserInRole = ({userId, removeUserAction, isEditable}) => {
@@ -67,7 +73,7 @@ const UsersInRole = ({work, role, setEditedRole, switchMode, accessToken, remove
     },[accessToken, work, role]);
     useEffect(()=>{
         fetchData();
-    },[work, role, accessToken]);
+    },[work, role, accessToken, fetchData]);
     if (isLoading)
     {
         return <Loader />;
@@ -112,6 +118,7 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
     const [termsResponse, setTermsResponse] = useState(null);
     const [isTermsLoading, setIsTermsLoading] = useState(false);
     const [termsError, setTermsError] = useState(false);
+    const [myRoles, setMyRoles] = useState([]);
     const fetchData = useCallback(() => {
         setIsRolesLoading(true);
         setRolesError(false);
@@ -159,7 +166,7 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
             setTermsResponse([]);
         });
         setIsTermsLoading(false);
-    },[accessToken, id, workData]);
+    },[accessToken, workData]);
     const removeUser = useCallback((work, role, user) => {
         axios.delete(process.env.REACT_APP_API_URL + "/works/" + work + "/roles/" + role + "/users/" + user,{
             headers: {
@@ -173,11 +180,11 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
         .catch(error => {
             dispatch({type: ADD_MESSAGE, text: "Při odebírání hodnotitele došlo k chybě.", variant: "error", dismissible: true, expiration: 3});
         });
-    },[accessToken, id]);
+    },[accessToken, dispatch]);
     useEffect(()=>{
         fetchData();
         fetchTerms();
-    },[accessToken]);
+    },[fetchData, fetchTerms]);
 
     const showRoles = () => {
         if (isRolesLoading || isTermsLoading) {
@@ -216,7 +223,18 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
             return (
                 rolesResponse.map((item,index)=>(
                     <DataCell key={index}>
-                        <UsersInRole work={id} role={item} switchMode={switchMode} setEditedRole={setEditedRole} accessToken={accessToken} removeUserAction={removeUser} fetchAction={fetchData} isEditable={isEditable} />
+                        <UsersInRole
+                            work={id}
+                            role={item}
+                            switchMode={switchMode}
+                            setEditedRole={setEditedRole}
+                            accessToken={accessToken}
+                            removeUserAction={removeUser}
+                            fetchAction={fetchData}
+                            isEditable={isEditable}
+                            myRoles={myRoles}
+                            setMyRoles={ setMyRoles }
+                        />
                     </DataCell>
                 ))
             );
@@ -229,83 +247,107 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
 
     return (
         <>
-        <CardHeader>
-            <Subheading>Role</Subheading>
-        </CardHeader>
-        <TableWrapper>
-            <Table width="100%">
-                <TableHeader>
-                    <TableRow>
-                        <HeadCell>Název role</HeadCell>
-                        {showRoles()}
-                    </TableRow>
-                    <TableRow>
-                        <HeadCell>Hodnotitel</HeadCell>
-                        {showAssignedRoles()}
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                {
-                Array.isArray(termsResponse)
-                ?
-                termsResponse.map((item, index) => (
-                    <TableRow key={index}>
-                        <HeadCell>{item.name}</HeadCell>
-                        <DataCell colSpan="9999"><DateTime date={item.date} /></DataCell>
-                    </TableRow>
-                ))
-                :
-                ""
-                }
-                </TableBody>
-            </Table>
-        </TableWrapper>
-        {
-            (profile !== null) && (
-                (
-                    profile[ADMIN_ROLE] === "1" 
-                    || (profile.sub === workData.authorId)
-                    || (profile.sub === workData.managerId)
-                    || (profile.sub === workData.userId)  
+            <CardHeader>
+                <Subheading>Role</Subheading>
+            </CardHeader>
+            <TableWrapper>
+                <Table width="100%">
+                    <TableHeader>
+                        <TableRow>
+                            <HeadCell>Název role</HeadCell>
+                            {showRoles()}
+                        </TableRow>
+                        <TableRow>
+                            <HeadCell>Hodnotitel</HeadCell>
+                            {showAssignedRoles()}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {
+                    Array.isArray(termsResponse) && Array.isArray(rolesResponse)
+                    ?
+                    termsResponse.map((term, termIndex) => (
+                        <TableRow key={termIndex}>
+                            <HeadCell>{term.name}<br /><TermDate><DateTime date={term.date} showTime={false}/></TermDate></HeadCell>
+                            {rolesResponse.map((role, roleIndex) => (
+                            <DataCell key={roleIndex}>
+                                 <TermRoleStats termId={term.id} roleId={role.id} workId={ workData.id } />
+                            </DataCell>
+                            ))}
+                        </TableRow>
+                    ))
+                    :
+                    ""
+                    }
+                    </TableBody>
+                    <TableFooter>
+                        <TableRow>
+                            <HeadCell>Hodnocení</HeadCell>
+                            {Array.isArray(rolesResponse) ? rolesResponse.map((role, roleIndex) => (
+                                <DataCell key={roleIndex}>
+                                    {role.id}
+                                </DataCell>
+                            )) : ""}
+                        </TableRow>
+                    </TableFooter>
+                </Table>
+            </TableWrapper>
+            {
+                (profile) && (
+                    (
+                        profile[ADMIN_ROLE] === "1" 
+                        || profile[MANAGER_ROLE] === "1" 
+                        || (profile.sub === workData.authorId)
+                        || (profile.sub === workData.managerId)
+                        || (profile.sub === workData.userId)  
+                    )
                 )
-            )
-            ?
-        <CardBody>
-        <Subheading>Přihlášky a hodnocení</Subheading>
-        {
-            workData.state === 0
-            ?
-            <Alert variant="info" text="Pro práce ve stavu přípravy nelze vygenerovat přihlášku. Přepněte stav práce alespoň na Běžící." />
+                ?
+            <CardBody>
+            <Subheading>Přihlášky a hodnocení</Subheading>
+            {
+                workData.state === 0
+                ?
+                <Alert variant="info" text="Pro práce ve stavu přípravy nelze vygenerovat přihlášku. Přepněte stav práce alespoň na Běžící." />
+                :
+                <CenteredContent>
+                <Button onClick={e => {
+                    axios({
+                        url: process.env.REACT_APP_API_URL + "/works/" + id + "/application",
+                        method: 'GET',
+                        responseType: 'blob',
+                        headers: {
+                            Authorization: "Bearer " + accessToken,
+                            "Content-Type": "text/html"
+                        } 
+                      }).then((response) => {
+                            let fileContent = new Blob([response.data]);
+                            const url = window.URL.createObjectURL(fileContent);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.setAttribute('download', 'prihlaska.html');
+                            document.body.appendChild(link);
+                            link.click();
+                            dispatch({type: ADD_MESSAGE, text: "Přihláška byla uložena.", variant: "success", dismissible: true, expiration: 3});
+                      }).catch((error)=>{
+                            dispatch({type: ADD_MESSAGE, text: "Při získávání přihlášky došlo k chybě.", variant: "error", dismissible: true, expiration: 3});
+                      })
+                }}>Uložit přihlášku</Button>
+                </CenteredContent>
+            }
+            {
+                workData.state < 4
+                ?
+                <Alert variant="info" text="Dokud není práce zhodnocená, nelze vygenerovat žádný posudek." />
+                :
+                <CenteredContent>
+                    <Button>Uložit posudek pro studenta</Button>
+                </CenteredContent>
+            }
+            </CardBody>
             :
-            <CenteredContent>
-            <Button onClick={e => {
-                axios({
-                    url: process.env.REACT_APP_API_URL + "/works/" + id + "/application",
-                    method: 'GET',
-                    responseType: 'blob',
-                    headers: {
-                        Authorization: "Bearer " + accessToken,
-                        "Content-Type": "text/html"
-                    } 
-                  }).then((response) => {
-                        let fileContent = new Blob([response.data]);
-                        const url = window.URL.createObjectURL(fileContent);
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.setAttribute('download', 'prihlaska.html');
-                        document.body.appendChild(link);
-                        link.click();
-                        dispatch({type: ADD_MESSAGE, text: "Přihláška byla uložena.", variant: "success", dismissible: true, expiration: 3});
-                  }).catch((error)=>{
-                        dispatch({type: ADD_MESSAGE, text: "Při získávání přihlášky došlo k chybě.", variant: "error", dismissible: true, expiration: 3});
-                  })
-            }}>Uložit přihlášku</Button>
-        </CenteredContent>
-        }
-        </CardBody>
-        :
-        ""
-        }
+            ""
+            }
         </>
     );
 }

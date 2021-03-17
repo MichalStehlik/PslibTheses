@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { CardContainer, Card, ActionLink, CardHeader, Subheading, Loader, Alert, PageTitle } from "../general";
 import {useAppContext, SET_TITLE} from "../../providers/ApplicationProvider";
 import axios from "axios";
-import {ADMIN_ROLE} from "../../configuration/constants";
+import {ADMIN_ROLE, MANAGER_ROLE} from "../../configuration/constants";
 import Edit from "./Edit";
 import Display from "./Display";
 import Goals from "./Goals";
@@ -29,7 +29,7 @@ export const Detail = props => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(false);
     const [evaluators, setEvaluators] = useState([]);
-    const [isEditable, setIsEditable] = useState(true);
+    const [isEditable, setIsEditable] = useState(false);
     const showRoles = () => {
         switch (rolesMode)
         {
@@ -85,13 +85,12 @@ export const Detail = props => {
             (profile !== null) && (
                 (
                     profile[ADMIN_ROLE] === "1" 
-                    || (response && profile.sub === response.userId && props.data.state === 0)
-                    || (response && profile.sub === response.managerId && props.data.state === 0)
-                    || (response && profile.sub === response.userId && props.data.state === 0)  
+                    || (response && profile.sub === response.userId && response.state === 0)
+                    || (response && profile.sub === response.managerId && response.state === 0)
                 )
             )
         );
-     },[accessToken, profile]);
+     },[accessToken, profile, response]);
     if (isLoading) {
         return <Loader size="2em"/>;
     } else if (error !== false) {
@@ -115,13 +114,13 @@ export const Detail = props => {
             </Card>       
             <Card>
                 <CardHeader><Subheading>Cíle</Subheading></CardHeader>
-                <Goals id={id} owner={response ? response.userId :  false} isEditable={isEditable} />
+                <Goals id={id} isEditable={isEditable} />
             </Card>
             <Card>
                 <CardHeader><Subheading>Osnova</Subheading></CardHeader>
-                <Outlines id={id} owner={response ? response.userId :  false} isEditable={isEditable} />
+                <Outlines id={id} isEditable={isEditable} />
             </Card>
-            { profile[ADMIN_ROLE] === "1" || (profile.sub === props.managerId && props.data.state === 0) || (profile.sub === props.userId && props.data.state === 0)
+                {(profile[ADMIN_ROLE] === "1" || profile[MANAGER_ROLE] === "1")
             ?    
             <Card>
                 <CardHeader><Subheading>Stav práce</Subheading></CardHeader>
@@ -131,7 +130,7 @@ export const Detail = props => {
             ""
             } 
             <Card>
-            {editingCosts ? <EditCosts data={response} id={id} isEditable={isEditable} owner={response ? response.userId :  false} switchEditMode={setEditingCosts} fetchData={fetchData} /> : <Costs data={response} owner={response ? response.userId :  false} switchEditMode={setEditingCosts} />}
+                    {editingCosts ? <EditCosts data={response} id={id} isEditable={isEditable} owner={response ? response.userId : false} switchEditMode={setEditingCosts} fetchData={fetchData} /> : <Costs data={response} switchEditMode={setEditingCosts} isEditable={isEditable} />}
             </Card>    
         </CardContainer>
         </>

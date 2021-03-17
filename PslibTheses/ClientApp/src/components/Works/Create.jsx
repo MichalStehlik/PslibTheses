@@ -57,8 +57,8 @@ export const Create = props => {
         fetchSetsData();
         fetchAuthorsData();
         fetchEvaluatorsData();
-        setOk(false); 
-    },[dispatch]);
+        setOk(false);
+    }, [dispatch, fetchSetsData, fetchAuthorsData, fetchEvaluatorsData]);
     return (
         <>
         <ActionLink to=".">Seznam</ActionLink>
@@ -100,7 +100,6 @@ export const Create = props => {
                     AuthorId: values.authorid,
                     ManagerId: values.managerid,
                     SetId: Number(values.setid),
-                    RepositoryURL: values.repositoryURL,
                     UserId: profile.sub
                 }, {
                     headers: {
@@ -155,18 +154,20 @@ export const Create = props => {
                     </FormGroup>
                     <FormTextInput name="resources" label="Prostředky" placeholder="Kruhová klícka, křeček, zrní, černé plátno, funkční kouzelná hůlka" />
                     <FormTextInput name="classname" label="Třída" placeholder="L4" />
-                    <FormTextInput name="repositoryURL" label="Odkaz na repozitář" placeholder="https://github.com" />
-                    <Button size="9px" onClick={e=>{
-                        let foundSet = sets.find(s=>s.id == values.setid);
-                        let set = foundSet !== undefined ? foundSet.name : "";
-                        set = set.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
-                        let foundAuthor = authors.find(a=>a.id == values.authorid);
-                        let author = foundAuthor !== undefined ? foundAuthor.name : "";
-                        author = author.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
-                        let name = values.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
-                        setFieldValue("repositoryURL","https://github.com/pslib-cz/" + set + "_" + author + "_" + name);
-                        e.preventDefault();
-                    }}>Vygenerovat název repozitáře</Button>
+                                <FormTextInput name="repositoryURL" label="Odkaz na repozitář" placeholder="https://github.com" />
+                                <Button size="9px" disabled={!values.name || !values.authorid || !values.setid} onClick={
+                                    e => {
+                                        let foundSet = sets.find(s=>s.id === values.setid);
+                                        let set = foundSet !== undefined ? foundSet.name : "";
+                                        set = set.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
+                                        let foundAuthor = authors.find(a=>a.id === values.authorid);
+                                        let author = foundAuthor !== undefined ? foundAuthor.name : "";
+                                        author = author.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
+                                        let name = values.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
+                                        setFieldValue("repositoryURL","https://github.com/pslib-cz/" + set + "_" + author + "_" + name);
+                                        e.preventDefault();
+                                    }
+                                }>Vygenerovat název repozitáře</Button>
                     <FormSelect name="authorid" label="Autor" placeholder="xxxxxxxx">
                     <option></option>
                         {Array.isArray(authors) ? authors.map((item,index) => (<option key={index} value={item.id}>{item.name + " (" + item.email + ")"}</option>)) : ""}
@@ -181,7 +182,7 @@ export const Create = props => {
                     </FormSelect>
                     <div>
                         <Button type="submit" variant="primary" disabled={!((dirty && isValid) || isSubmitting)}>{!isSubmitting ? "Uložit" : "Pracuji"}</Button>
-                        <Button onClick={()=>{history.push("/works")}}>Zpět</Button>
+                        <Button onClick={()=>{history.push("/works")}}>Storno</Button>
                     </div>
                 </Form>
                 )}            

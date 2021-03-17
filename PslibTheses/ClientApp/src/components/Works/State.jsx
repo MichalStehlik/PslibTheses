@@ -4,7 +4,7 @@ import {useAppContext, ADD_MESSAGE} from "../../providers/ApplicationProvider";
 import axios from "axios";
 import {WorkStates, ADMIN_ROLE, MANAGER_ROLE} from "../../configuration/constants";
 
-const State = ({id, isEditable, fetchData, data}) => {
+const State = ({id, fetchData, data}) => {
     const [{accessToken, profile}, dispatch] = useAppContext();
     const [response, setResponse] = useState(null);
     const [isLoading, setIsLoading] = useState(false);

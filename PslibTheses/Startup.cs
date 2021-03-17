@@ -59,7 +59,8 @@ namespace PslibTheses
                 });
                 options.AddPolicy("Manager", policy =>
                 {
-                    policy.RequireClaim(Definitions.THESES_MANAGER_CLAIM, "1");
+                    policy.RequireAssertion(context => (context.User.HasClaim(c => c.Type == Definitions.THESES_ADMIN_CLAIM && c.Value == "1") || context.User.HasClaim(c => c.Type == Definitions.THESES_MANAGER_CLAIM && c.Value == "1")));
+                    //policy.RequireClaim(Definitions.THESES_MANAGER_CLAIM, "1");
                 });
             });
             services.AddAuthentication("Bearer").AddJwtBearer("Bearer", options =>
@@ -69,6 +70,7 @@ namespace PslibTheses
                 options.Audience = "ThesesApi";
             }
             );
+            /*
             services.AddCors(options =>
             {
                 // this defines a CORS policy called "default"
@@ -79,6 +81,7 @@ namespace PslibTheses
                           .AllowAnyMethod();
                 });
             });
+            */
 
             services.AddScoped<RazorViewToStringRenderer>();
 
@@ -111,7 +114,7 @@ namespace PslibTheses
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseCors("default");
+            //app.UseCors("default");
 
             app.UseEndpoints(endpoints =>
             {

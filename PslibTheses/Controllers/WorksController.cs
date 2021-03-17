@@ -40,6 +40,7 @@ namespace PslibTheses.Controllers
             _authorizationService = authorizationService;
         }
         // GET: Work
+        [Authorize]
         [HttpGet]
         public ActionResult<IEnumerable<WorkListVM>> GetWorks(
             string search = null,
@@ -162,6 +163,7 @@ namespace PslibTheses.Controllers
         /// <param name="id">Work Id</param>
         /// <returns>Work</returns>
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<WorkVM>> GetWork(int id)
         {
             var work = await _context.Works.FindAsync(id);
@@ -197,6 +199,7 @@ namespace PslibTheses.Controllers
         }
 
         [HttpGet("{id}/full")]
+        [Authorize]
         public async Task<ActionResult<WorkVM>> GetFullWork(int id)
         {
             var work = await _context.Works
@@ -1318,7 +1321,7 @@ namespace PslibTheses.Controllers
         }
 
         [HttpPut("{id}/state/{newState}")]
-        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        [Authorize(Policy = "Manager")]
         public async Task<ActionResult<WorkState>> PutWorkState(int id, WorkState newState)
         {
             var work = await _context.Works.FindAsync(id);
@@ -1494,6 +1497,52 @@ namespace PslibTheses.Controllers
             _context.WorkRoleUsers.Remove(roleUser);
             _context.SaveChanges();
             return Ok(workRole);
+        }
+
+        // statistics for role in term
+        [Authorize]
+        [HttpGet("{id}/stats/{setRoleId}/{setTermId}")]
+        public async Task<ActionResult<WorkRoleTermStatsVM>> GetWorkRoleTermStats(int id, int setRoleId, int setTermId)
+        {
+            var userId = Guid.Parse(User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value);
+            var work = await _context.Works.FindAsync(id);
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var set = await _context.Sets.FindAsync(work.SetId);
+            if (set == null)
+            {
+                return NotFound("set not found");
+            }
+            var setQuestionsStats = await _context.SetQuestions.Where(sq => sq.SetRoleId == setRoleId && sq.SetTermId == setTermId)
+                .GroupBy(sq => 1)
+                .Select(sq => new QuestionsPointsStats { Questions = sq.Count(), Points = sq.Sum(s => s.Points) }).SingleOrDefaultAsync();
+            var workAnswersStats = await _context.WorkEvaluations
+                .Include(wa => wa.SetQuestion)
+                .Include(wa => wa.SetAnswer)
+                .Where(wa => wa.WorkId == id)
+                .GroupBy(sq => 1)
+                .Select(sq => new QuestionsPointsStats { Questions = sq.Count(), Points = sq.Sum(s => (s.SetAnswerId)) }).SingleOrDefaultAsync();
+
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (isEvaluator.Succeeded)
+            {
+                return Ok(new WorkRoleTermStatsVM
+                {
+                    TotalQuestions = setQuestionsStats.Questions,
+                    TotalPoints = setQuestionsStats.Points,
+                    FilledQuestions = workAnswersStats.Questions,
+                    GainedPoints = workAnswersStats.Points
+                });
+            }
+            else
+            {
+                return Ok(new WorkRoleTermStatsVM
+                {
+                    TotalQuestions = setQuestionsStats.Questions
+                });
+            }
         }
 
         // print version

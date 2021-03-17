@@ -100,7 +100,7 @@ export const EditCosts = props => {
                 </FormGroup>
                 <div>
                     <Button type="submit" variant="primary" disabled={!(isValid || isSubmitting)}>{!isSubmitting ? "Uložení" : "Pracuji"}</Button>
-                    <Button onClick={()=>{props.switchEditMode(false)}}>Zpět</Button>
+                    <Button onClick={()=>{props.switchEditMode(false)}}>Storno</Button>
                 </div>
             </Form>
             )}            

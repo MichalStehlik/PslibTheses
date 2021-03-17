@@ -53,7 +53,7 @@ export const Edit = props => {
         fetchSetsData();
         fetchAuthorsData();
         fetchEvaluatorsData();
-     },[dispatch]);
+    }, [dispatch, fetchAuthorsData, fetchSetsData, fetchEvaluatorsData]);
     return (
         <Formik
         initialValues={{
@@ -91,8 +91,7 @@ export const Edit = props => {
                 RepositoryURL: props.data.repositoryURL,
                 AuthorId: values.authorid,
                 ManagerId: values.managerid,
-                SetId: Number(values.setid),
-                RepositoryURL: values.repositoryURL,
+                SetId: Number(values.setid)
             }, {
                 headers: {
                     Authorization: "Bearer " + accessToken,
@@ -154,11 +153,11 @@ export const Edit = props => {
                 <FormTextInput name="resources" label="Prostředky" placeholder="Kruhová klícka, křeček, zrní, černé plátno, funkční kouzelná hůlka" />
                 <FormTextInput name="classname" label="Třída" placeholder="L4" />
                 <FormTextInput name="repositoryURL" label="Odkaz na repozitář" placeholder="https://github.com" />
-                <Button size="9px" onClick={e=>{
-                        let foundSet = sets.find(s=>s.id == values.setid);
+                <Button size="9px" disabled={!values.name || !values.authorid || !values.setid} onClick={e=>{
+                        let foundSet = sets.find(s=>s.id === values.setid);
                         let set = foundSet !== undefined ? foundSet.name : "";
                         set = set.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
-                        let foundAuthor = authors.find(a=>a.id == values.authorid);
+                        let foundAuthor = authors.find(a=>a.id === values.authorid);
                         let author = foundAuthor !== undefined ? foundAuthor.name : "";
                         author = author.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
                         let name = values.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
@@ -179,7 +178,7 @@ export const Edit = props => {
                 </FormSelect>
                 <div>
                     <Button type="submit" variant="primary" disabled={!(isValid || isSubmitting)}>{!isSubmitting ? "Uložení" : "Pracuji"}</Button>
-                    <Button onClick={()=>{props.switchEditMode(false)}}>Zpět</Button>
+                    <Button onClick={()=>{props.switchEditMode(false)}}>Storno</Button>
                 </div>
             </Form>
             )}            

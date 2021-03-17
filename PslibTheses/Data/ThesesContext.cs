@@ -31,6 +31,9 @@ namespace PslibTheses.Data
         public DbSet<WorkOutline> WorkOutlines { get; set; }
         public DbSet<WorkRole> WorkRoles { get; set; }
         public DbSet<WorkRoleUser> WorkRoleUsers { get; set; }
+        public DbSet<WorkRoleQuestion> WorkRoleQuestions { get; set; }
+        public DbSet<WorkEvaluation> WorkEvaluations { get; set; }
+        public DbSet<WorkNote> WorkNotes { get; set; }
         public DbSet<Scale> Scales { get; set; }
         public DbSet<ScaleValue> ScaleValues { get; set; }
 
@@ -42,6 +45,7 @@ namespace PslibTheses.Data
             });
             modelBuilder.Entity<IdeaOffer>().HasKey(io => new { io.IdeaId, io.UserId });
             modelBuilder.Entity<ScaleValue>().HasKey(sv => new { sv.ScaleId, sv.Rate });
+            modelBuilder.Entity<WorkEvaluation>().HasKey(we => new { we.WorkId, we.SetQuestionId });
             modelBuilder.Entity<IdeaGoal>().HasIndex(ig => new { ig.IdeaId, ig.Order }).IsUnique();
             modelBuilder.Entity<IdeaOutline>().HasIndex(io => new { io.IdeaId, io.Order }).IsUnique();
             modelBuilder.Entity<IdeaTarget>().HasIndex(it => new { it.IdeaId, it.TargetId }).IsUnique();

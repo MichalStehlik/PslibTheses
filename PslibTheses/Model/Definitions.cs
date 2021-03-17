@@ -16,11 +16,12 @@ namespace PslibTheses.Model
         public static readonly Dictionary<WorkState, List<WorkState>> StateTransitions = new Dictionary<WorkState, List<WorkState>>
         {
             { WorkState.InPreparation, new List<WorkState> {WorkState.WorkedOut} },
-            { WorkState.WorkedOut, new List<WorkState> {WorkState.Completed, WorkState.Failed} },
-            { WorkState.Completed, new List<WorkState> {WorkState.Undefended, WorkState.Succesful} },
+            { WorkState.WorkedOut, new List<WorkState> {WorkState.Delivered, WorkState.Failed} },
             { WorkState.Failed, new List<WorkState> {} },
-            { WorkState.Succesful, new List<WorkState> {} },
-            { WorkState.Undefended, new List<WorkState> {} }
+            { WorkState.Delivered, new List<WorkState> {WorkState.Evaluated} },
+            { WorkState.Evaluated, new List<WorkState> {WorkState.Successful, WorkState.Unsuccessful} },
+            { WorkState.Successful, new List<WorkState> {} },
+            { WorkState.Unsuccessful, new List<WorkState> {} }
         };
     }
 }

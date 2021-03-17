@@ -1,23 +1,7 @@
-import React, {useState, useEffect} from 'react';
-import {useAppContext, ADD_MESSAGE} from "../../providers/ApplicationProvider";
+import React from 'react';
 import {Table, TableBody, TableHeader, TableRow, DataCell, HeadCell, TableFooter, Button, CardHeader, CardFooter, CardBody, Subheading, ButtonBlock } from "../general";
-import {ADMIN_ROLE, EVALUATOR_ROLE} from "../../configuration/constants";
 
-const Display = props => {
-    const [{accessToken, profile}, dispatch] = useAppContext();
-    const [isEditable, setIsEditable] = useState(true);
-    useEffect(()=>{ 
-        setIsEditable(
-            (profile !== null) && (
-                (
-                    profile[ADMIN_ROLE] === "1" 
-                    || (profile.sub === props.authorId && props.data.state === 0) 
-                    || (profile.sub === props.managerId && props.data.state === 0)
-                    || (profile.sub === props.userId && props.data.state === 0)  
-                )
-            )
-        );
-     },[accessToken, profile, props.owner]);
+const Display = ({isEditable, data, switchEditMode}) => {
         return (
             <>
             <CardHeader><Subheading>Náklady</Subheading></CardHeader>
@@ -33,28 +17,28 @@ const Display = props => {
                     <TableBody>
                         <TableRow>
                             <HeadCell>Výrobní náklady</HeadCell>
-                            <DataCell>{props.data.materialCosts}</DataCell>
-                            <DataCell>{props.data.materialCostsProvidedBySchool}</DataCell>
+                            <DataCell>{data.materialCosts}</DataCell>
+                            <DataCell>{data.materialCostsProvidedBySchool}</DataCell>
                         </TableRow>
                         <TableRow>
                             <HeadCell>Náklady na služby</HeadCell>
-                            <DataCell>{props.data.servicesCosts}</DataCell>
-                            <DataCell>{props.data.servicesCostsProvidedBySchool}</DataCell>
+                            <DataCell>{data.servicesCosts}</DataCell>
+                            <DataCell>{data.servicesCostsProvidedBySchool}</DataCell>
                         </TableRow>
                     </TableBody>
                     <TableFooter>
                         <TableRow>
                             <HeadCell>Celkem</HeadCell>
-                            <DataCell>{Number(props.data.materialCosts) + Number(props.data.servicesCosts)}</DataCell>
-                            <DataCell>{Number(props.data.materialCostsProvidedBySchool) + Number(props.data.servicesCostsProvidedBySchool)}</DataCell>
+                            <DataCell>{Number(data.materialCosts) + Number(data.servicesCosts)}</DataCell>
+                            <DataCell>{Number(data.materialCostsProvidedBySchool) + Number(data.servicesCostsProvidedBySchool)}</DataCell>
                         </TableRow>
                     </TableFooter>
                 </Table>
-                {props.data.detailExpenditures 
+                {data.detailExpenditures 
                 ?
                 <>
                     <Subheading>Podrobnosti</Subheading>
-                    <div dangerouslySetInnerHTML={{__html: props.data.detailExpenditures }} />
+                    <div dangerouslySetInnerHTML={{__html: data.detailExpenditures }} />
                 </>
                 :
                 ""
@@ -64,7 +48,7 @@ const Display = props => {
             {isEditable ? 
             <CardFooter>
                 <ButtonBlock>
-                    <Button onClick={e => props.switchEditMode(true)}>Editovat</Button>   
+                    <Button onClick={e => switchEditMode(true)}>Editovat</Button>   
                 </ButtonBlock>
             </CardFooter>
             : 

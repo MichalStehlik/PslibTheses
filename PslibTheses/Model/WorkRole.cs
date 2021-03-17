@@ -26,5 +26,6 @@ namespace PslibTheses.Model
         [Column(TypeName = "datetime2")]
         public DateTime Updated { get; set; }
         public ICollection<WorkRoleUser> WorkRoleUsers { get; set; }
+        public ICollection<WorkRoleQuestion> WorkRoleQuestions { get; set; }
     }
 }

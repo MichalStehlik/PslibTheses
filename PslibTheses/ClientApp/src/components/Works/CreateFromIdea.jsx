@@ -97,8 +97,8 @@ export const CreateFromIdea = props => {
         fetchIdeaData();
         fetchIdeaGoalsData();
         fetchIdeaOutlinesData();
-        setOk(false); 
-    },[dispatch]);
+        setOk(false);
+    }, [dispatch, fetchAuthorsData, fetchEvaluatorsData, fetchIdeaData, fetchIdeaGoalsData, fetchIdeaOutlinesData, fetchSetsData]);
     return (
         <>
         <ActionLink to="/works">Seznam</ActionLink>
@@ -144,7 +144,6 @@ export const CreateFromIdea = props => {
                     AuthorId: values.authorid,
                     ManagerId: values.managerid,
                     SetId: Number(values.setid),
-                    RepositoryURL: values.repositoryURL,
                     UserId: profile.sub
                 }, {
                     headers: {
@@ -196,11 +195,11 @@ export const CreateFromIdea = props => {
                     {(ok !== false) ? <Alert text={"Uložení práce se podařilo."}  variant="success" /> : ""}
                     <FormTextInput name="classname" label="Třída" placeholder="L4" />
                     <FormTextInput name="repositoryURL" label="Odkaz na repozitář" placeholder="https://github.com" />
-                    <Button size="9px" onClick={e=>{
-                        let foundSet = sets.find(s=>s.id == values.setid);
+                    <Button size="9px" disabled={!values.name || !values.authorid || !values.setid} onClick={e=>{
+                        let foundSet = sets.find(s=>s.id === values.setid);
                         let set = foundSet !== undefined ? foundSet.name : "";
                         set = set.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
-                        let foundAuthor = authors.find(a=>a.id == values.authorid);
+                        let foundAuthor = authors.find(a=>a.id === values.authorid);
                         let author = foundAuthor !== undefined ? foundAuthor.name : "";
                         author = author.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
                         let name = idea.name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
@@ -221,7 +220,7 @@ export const CreateFromIdea = props => {
                     </FormSelect>
                     <div>
                         <Button type="submit" variant="primary" disabled={!((dirty && isValid && idea) || isSubmitting)}>{!isSubmitting ? "Uložit" : "Pracuji"}</Button>
-                        <Button onClick={()=>{history.push("/works")}}>Zpět</Button>
+                        <Button onClick={()=>{history.push("/ideas")}}>Storno</Button>
                     </div>
                 </Form>
                 )}            

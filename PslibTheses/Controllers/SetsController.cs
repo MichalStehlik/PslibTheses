@@ -25,6 +25,7 @@ namespace PslibTheses.Controllers
 
         // GET: Sets
         [HttpGet]
+        [Authorize]
         public ActionResult<IEnumerable<Set>> GetSets(
             string search = null,
             string name = null,
@@ -74,7 +75,7 @@ namespace PslibTheses.Controllers
         }
 
         // GET: Sets/5
-        [Authorize(Policy = "Administrator")]
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<Set>> GetSet(int id)
         {

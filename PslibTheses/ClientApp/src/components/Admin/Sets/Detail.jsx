@@ -90,7 +90,7 @@ export const Detail = props => {
         fetchData();
         fetchWorksCount();
         fetchWorks();
-    },[]);
+    },[fetchData, fetchWorksCount, fetchWorks]);
     if (isLoading) {
         return <Loader size="2em"/>;
     } else if (error !== false) {
