@@ -45,7 +45,6 @@ export const Question = ({value, globalEditing, setGlobalEditing, setId, fetchDa
     });
 
     drag(drop(ref));
-    const opacity = isDragging ? 0 : 1;
     return (
         <StyledQuestion globalEditing={globalEditing} ref={ref}>
             {editMode

@@ -18,7 +18,7 @@ const Works = props => {
             <Route exact path="/works/create/:id" component={CreateFromIdea} />
             <Route exact path="/works/create" component={Create} />
             <Route exact path="/works/guide" component={Guide} />
-            <Route path="/works/:id" component={Detail} />
+            <Route exact path="/works/:id" component={Detail} />
             <LayoutRoute component={NotFound} layout={MessageLayout} backgroundColor={theme.colors.infoBackground} color={theme.colors.infoForeground} />   
         </Switch>
     );

@@ -79,15 +79,17 @@ export const Detail = props => {
     useEffect(()=>{
         fetchData();
         fetchEvaluatorsData();
-    },[]);
+    }, [fetchEvaluatorsData, fetchData]);
     useEffect(()=>{ 
         setIsEditable(
-            (profile !== null) && (
+            (profile !== null) && (response !== null) && (
                 (
                     profile[ADMIN_ROLE] === "1" 
                     || (response && profile.sub === response.userId && response.state === 0)
                     || (response && profile.sub === response.managerId && response.state === 0)
                 )
+                &&
+                response.state < 4
             )
         );
      },[accessToken, profile, response]);

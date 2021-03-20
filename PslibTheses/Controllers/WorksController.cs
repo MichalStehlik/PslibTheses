@@ -30,6 +30,7 @@ namespace PslibTheses.Controllers
         private readonly IAuthorizationService _authorizationService;
 
         private readonly Dictionary<WorkState, List<WorkState>> _stateTransitions = Definitions.StateTransitions;
+        private readonly WorkState[] editableStates = new WorkState[] { WorkState.InPreparation, WorkState.WorkedOut, WorkState.Delivered};
 
         public WorksController(ThesesContext context, RazorViewToStringRenderer razorRenderer, IConfiguration configuration, /*EmailSender emailSender,*/ IAuthorizationService authorizationService)
         {
@@ -364,6 +365,11 @@ namespace PslibTheses.Controllers
                 return BadRequest("User with AuthorId cannot be assigned as author.");
             }
 
+            if (!editableStates.Contains(work.State))
+            {
+                return BadRequest("work is not in editable state");
+            }
+
             work.Name = input.Name;
             work.Description = input.Description;
             work.Resources = input.Resources;
@@ -443,6 +449,11 @@ namespace PslibTheses.Controllers
             if (work.AuthorId != input.AuthorId && author.CanBeAuthor == false)
             {
                 return BadRequest("User with this AuthorId cannot be assigned as author.");
+            }
+
+            if (!editableStates.Contains(work.State))
+            {
+                return BadRequest("work is not in editable state");
             }
 
             var isAdministrator = await _authorizationService.AuthorizeAsync(User, "Administrator");
@@ -1330,11 +1341,14 @@ namespace PslibTheses.Controllers
                 return NotFound("work not found");
             }
             var next = _stateTransitions[work.State];
-            //  || (User.HasClaim(c => ((c.Type == Security.THESES_ADMIN_CLAIM) && (c.Value == "1")))) || (User.HasClaim(c => ((c.Type == Security.THESES_ROBOT_CLAIM) && (c.Value == "1"))))
-            if (!next.Contains(newState))
+            var isAdministrator = await _authorizationService.AuthorizeAsync(User, "Administrator");
+            if (!isAdministrator.Succeeded)
             {
-                return BadRequest("state transition is not valid");
-            }
+                if (!next.Contains(newState))
+                {
+                    return BadRequest("state transition is not valid");
+                }
+            }           
             work.State = newState;
             _context.SaveChanges();
             return newState;
@@ -1362,6 +1376,12 @@ namespace PslibTheses.Controllers
                 return NotFound("work not found");
             }
             var role = _context.WorkRoles.Include(wr => wr.SetRole).Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!isEvaluator.Succeeded && !User.HasClaim(ClaimTypes.NameIdentifier, work.AuthorId.ToString()) && work.State < WorkState.Evaluated)
+            {
+                role.Mark = null;
+                role.Review = null;
+            }
             return role;
         }
 

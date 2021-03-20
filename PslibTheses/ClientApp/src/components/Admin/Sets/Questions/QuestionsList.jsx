@@ -3,7 +3,6 @@ import {Question} from "./Question";
 import styled from 'styled-components';
 import axios from "axios";
 import {useAppContext, ADD_MESSAGE} from "../../../../providers/ApplicationProvider";
-import { useDrag, useDrop } from 'react-dnd';
 
 const StyledEmptyParagraph = styled.p`
 padding: 10px;
@@ -29,7 +28,7 @@ export const QuestionsList = ({data, setId, fetchData, roleId, termId}) => {
         .catch(error => {
             dispatch({type: ADD_MESSAGE, text: "Během změny pořadí otázek došlo k chybě. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3});
         });
-    },[data, accessToken, dispatch, fetchData]);
+    },[accessToken, dispatch, fetchData, roleId, setId, termId]);
 
     useEffect(()=>{setCollection(data)},[data]);
     const movingItem = useCallback(
