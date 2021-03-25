@@ -6,6 +6,7 @@ import CreateFromIdea from "./CreateFromIdea";
 import Guide from "./Guide";
 import Detail from "./Detail";
 import NotFound from "../NotFound";
+import Evaluation from "./Evaluation";
 import LayoutRoute from "../layouts/LayoutRoute";
 import MessageLayout from "../layouts/MessageLayout";
 import {mainTheme as theme} from "../../App";
@@ -18,6 +19,7 @@ const Works = props => {
             <Route exact path="/works/create/:id" component={CreateFromIdea} />
             <Route exact path="/works/create" component={Create} />
             <Route exact path="/works/guide" component={Guide} />
+            <Route exact path="/works/:id/evaluation/:role/:term" component={Evaluation} />
             <Route exact path="/works/:id" component={Detail} />
             <LayoutRoute component={NotFound} layout={MessageLayout} backgroundColor={theme.colors.infoBackground} color={theme.colors.infoForeground} />   
         </Switch>

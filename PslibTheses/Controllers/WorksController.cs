@@ -1410,7 +1410,7 @@ namespace PslibTheses.Controllers
         }
 
         [HttpDelete("{id}/roles/{roleId}")]
-        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        [Authorize(Policy = "Administrator")]
         public async Task<ActionResult<WorkRole>> DeleteWorkRole(int id, int roleId)
         {
             var work = await _context.Works.FindAsync(id);
@@ -1434,6 +1434,7 @@ namespace PslibTheses.Controllers
         }
 
         // users in roles
+        [Authorize]
         [HttpGet("{id}/roles/{workRoleId}/users")]
         public async Task<ActionResult<List<User>>> GetWorkRoleAssignments(int id, int workRoleId)
         {
@@ -1563,6 +1564,76 @@ namespace PslibTheses.Controllers
                     TotalQuestions = setQuestionsStats.Questions
                 });
             }
+        }
+
+        // set questions
+        [Authorize]
+        [HttpGet("{id}/questions/{setRoleId}/{setTermId}")]
+        public async Task<ActionResult<IEnumerable<SetQuestion>>> GetWorkQuestions(int id, int setRoleId, int setTermId)
+        {
+            var work = await _context.Works.Include(w => w.Author).Where(w => w.Id == id).FirstOrDefaultAsync();
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!User.HasClaim(ClaimTypes.NameIdentifier, work.AuthorId.ToString()) && !isEvaluator.Succeeded)
+            {
+                return Unauthorized("only author or privileged user can list questions for this work");
+            }
+            var setQuestions = _context.SetQuestions
+                .Where(sq => sq.SetRoleId == setRoleId && sq.SetTermId == setTermId)
+                .OrderBy(sq => sq.Order)
+                .AsNoTracking();
+            return Ok(setQuestions);
+        }
+
+        [Authorize]
+        [HttpGet("{id}/questions/{questionId}", Name = "GetWorkQuestion")]
+        public async Task<ActionResult<SetRole>> GetWorkQuestion(int id, int questionId)
+        {
+            var work = await _context.Works.Include(w => w.Author).Where(w => w.Id == id).FirstOrDefaultAsync();
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!User.HasClaim(ClaimTypes.NameIdentifier, work.AuthorId.ToString()) && !isEvaluator.Succeeded)
+            {
+                return Unauthorized("only author or privileged user can list questions for this work");
+            }
+            var @question = await _context.SetQuestions.FindAsync(questionId);
+            if (@question == null)
+            {
+                return NotFound("question not found");
+            }
+            return Ok(question);
+        }
+
+        [Authorize]
+        [HttpGet("{id}/questions/{questionId}/answers")]
+        public async Task<ActionResult<IEnumerable<SetQuestion>>> GetWorkAnswers(int id, int questionId)
+        {
+            var work = await _context.Works.Include(w => w.Author).Where(w => w.Id == id).FirstOrDefaultAsync();
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var question = await _context.SetQuestions.FindAsync(questionId);
+            if (question == null)
+            {
+                return NotFound("question not found");
+            }
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!User.HasClaim(ClaimTypes.NameIdentifier, work.AuthorId.ToString()) && !isEvaluator.Succeeded)
+            {
+                return Unauthorized("only author or privileged user can list answers for questions of this work");
+            }
+            var setAnswers = _context.SetAnswers
+                .Where(sa => sa.SetQuestionId == questionId)
+                .OrderByDescending(sa => sa.Rating)
+                .ToList();
+            return Ok(setAnswers);
         }
 
         // print version

@@ -31,7 +31,7 @@ namespace PslibTheses.Model
         public bool LockedChange { get; set; } = false;
         public bool LockedIcon { get; set; } = false;
         [NotMapped]
-        public string Name { get { return FirstName + (String.IsNullOrEmpty(MiddleName) ? "" : (" " + MiddleName)) + " " + LastName; } }
+        public string Name { get { return LastName + ", " + FirstName + (String.IsNullOrEmpty(MiddleName) ? "" : (" " + MiddleName)); } }
         [JsonIgnore]
         public ICollection<Idea> OwnedIdeas { get; set; }
         [JsonIgnore]

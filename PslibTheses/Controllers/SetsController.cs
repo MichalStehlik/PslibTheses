@@ -26,7 +26,7 @@ namespace PslibTheses.Controllers
         // GET: Sets
         [HttpGet]
         [Authorize]
-        public ActionResult<IEnumerable<Set>> GetSets(
+        public ActionResult<IEnumerable<SetListVM>> GetSets(
             string search = null,
             string name = null,
             bool? active = null,
@@ -35,14 +35,15 @@ namespace PslibTheses.Controllers
             int page = 0,
             int pagesize = 0)
         {
-            IQueryable<SetListVM> sets = _context.Sets.Select(s =>
+            IQueryable<SetListVM> sets = _context.Sets.Include(s => s.Works).Select(s =>
                 new SetListVM
                 {
                     Id = s.Id,
                     Name = s.Name,
                     Active = s.Active,
                     Template = s.Template,
-                    Year = s.Year
+                    Year = s.Year,
+                    WorksCount = s.Works.Count
                 }
             );
             int total = sets.CountAsync().Result;

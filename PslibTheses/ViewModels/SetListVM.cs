@@ -13,5 +13,6 @@ namespace PslibTheses.ViewModels
         public int Year { get; set; }
         public bool Active { get; set; }
         public ApplicationTemplate Template { get; set; }
+        public int WorksCount { get; set; }
     }
 }

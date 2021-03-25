@@ -157,7 +157,9 @@ export const Create = props => {
                                 <FormTextInput name="repositoryURL" label="Odkaz na repozitář" placeholder="https://github.com" />
                                 <Button size="9px" disabled={!values.name || !values.authorid || !values.setid} onClick={
                                     e => {
-                                        let foundSet = sets.find(s=>s.id === values.setid);
+                                        console.log(values, sets);
+                                        let foundSet = sets.find(s => s.id === Number(values.setid));
+                                        console.log(foundSet);
                                         let set = foundSet !== undefined ? foundSet.name : "";
                                         set = set.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");
                                         let foundAuthor = authors.find(a=>a.id === values.authorid);

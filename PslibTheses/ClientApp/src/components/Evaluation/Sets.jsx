@@ -1,6 +1,6 @@
 import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import {Link} from "react-router-dom";
-import {DataTable, ActionLink, BoolColumnFilter} from "../general";
+import {DataTable, BoolColumnFilter} from "../general";
 import {useAppContext, SET_TITLE} from "../../providers/ApplicationProvider";
 import axios from "axios";
 
@@ -45,7 +45,7 @@ const Sets = props => {
             }
           }
         }      
-        axios.get(process.env.REACT_APP_API_URL + "/evaluation?" + parameters.join("&"), {headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" }})
+        axios.get(process.env.REACT_APP_API_URL + "/sets?" + parameters.join("&"), {headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" }})
         .then(response => {
           setData(response.data.data);
           setTotalPages(response.data.pages);

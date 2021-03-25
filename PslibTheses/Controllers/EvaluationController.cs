@@ -24,6 +24,7 @@ namespace PslibTheses.Controllers
             _context = context;
         }
 
+        /*
         [HttpGet]
         public ActionResult<IEnumerable<Set>> GetSets(
             string search = null,
@@ -72,6 +73,7 @@ namespace PslibTheses.Controllers
 
             return Ok(new { total, filtered, count, page, pages = ((pagesize == 0) ? 0 : Math.Ceiling((double)filtered / pagesize)), data = result });
         }
+        */
 
         [HttpGet("{setId}")]
         public ActionResult<IEnumerable<WorkEvaluationListVM>> GetWorks(

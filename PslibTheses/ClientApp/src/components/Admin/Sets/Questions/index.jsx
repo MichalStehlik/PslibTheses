@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import { useParams } from "react-router-dom";
-import {useAppContext, SET_TITLE} from "../../../../providers/ApplicationProvider";
-import {ActionLink, Alert, PageTitle, CardContainer, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Loader} from "../../../general";
+import { useAppContext, SET_TITLE } from "../../../../providers/ApplicationProvider";
+import { ActionLink, Alert, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Loader } from "../../../general";
 import styled from 'styled-components';
 import axios from "axios";
 import QuestionsList from "./QuestionsList";
@@ -124,8 +124,8 @@ export const Questions = props => {
         fetchRoleData(id, role);
         fetchTermData(id, term);
         fetchQuestionsData(id, term, role);
-        dispatch({type: SET_TITLE, payload: "Otázky v sadě"});
-    },[id, term, role]);
+        dispatch({ type: SET_TITLE, payload: "Otázky v sadě" });
+    }, [id, term, role, dispatch, fetchQuestionsData, fetchRoleData, fetchSetData, fetchTermData]);
     return (
         <>
             <ActionLink to="/admin/">Administrace</ActionLink>
