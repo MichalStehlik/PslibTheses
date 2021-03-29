@@ -50,7 +50,7 @@ const StyledFoundItemDescription = styled.small`
     margin: .2rem;
 `;
 
-const FoundItem = ({item}) => {
+const FoundItem = ({ item, setSearchResults }) => {
     let area = "";
     let icon;
     switch (item.type)
@@ -61,7 +61,7 @@ const FoundItem = ({item}) => {
         case 3: area = "sets"; icon = <SetIcon fill="white" height="2em" />; break;
     }
     return (
-        <StyledFoundItem to={"/" + area + "/" + item.id}>
+        <StyledFoundItem to={"/" + area + "/" + item.id} onClick={e => { setSearchResults([])}}>
             <StyledFoundItemIcon>{icon}</StyledFoundItemIcon>
             <StyledFoundItemName>{item.name}</StyledFoundItemName>
             <StyledFoundItemDescription>{item.description}</StyledFoundItemDescription>
@@ -69,14 +69,14 @@ const FoundItem = ({item}) => {
     );
 }
 
-const FoundItems = ({items}) => {
+const FoundItems = ({items, setSearchResults}) => {
     return (
         <>
             <Heading>Nalezený obsah</Heading>
             <p>Bylo nalezeno { items.length } předmětů odpovídajících hledanému výrazu.</p>
             <StyledFoundItems>
             {items.map((item,index)=>(
-                <FoundItem key={index} item={item} />
+                <FoundItem key={index} item={item} setSearchResults={setSearchResults} />
             ))}
             </StyledFoundItems>
         </>

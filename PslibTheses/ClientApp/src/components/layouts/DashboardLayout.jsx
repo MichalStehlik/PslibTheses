@@ -141,7 +141,7 @@ const DashboardLayout = props => {
             {searchResults.length > 0
                 ?
                 <FoundWrapper>
-                    <FoundItems items={searchResults} />
+                    <FoundItems items={searchResults} setSearchResults={setSearchResults} />
                 </FoundWrapper>
                 :
                 null
