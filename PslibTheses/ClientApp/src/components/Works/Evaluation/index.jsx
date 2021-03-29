@@ -172,7 +172,7 @@ const Evaluation = props => {
                                 }
                                 {isEditable
                                     ?
-                                    <Alert text="Odpověď u každé otázky vyberete kliknutím na ni." variant="info" />
+                                    <Alert text="U každé otázky vyberte zvolenou odpověď kliknutím na ni." variant="info" />
                                     :
                                     null
                                 }

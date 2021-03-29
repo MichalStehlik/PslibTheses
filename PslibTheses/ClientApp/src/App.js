@@ -29,7 +29,7 @@ import Users from "./components/Users";
 import Admin from "./components/Admin";
 import Ideas from "./components/Ideas";
 import Works from "./components/Works";
-import Evaluation from "./components/Evaluation";
+import Overviews from "./components/Overviews";
 
 const history = createBrowserHistory(/*{ basename: "/prace/"}*/);
 
@@ -111,8 +111,8 @@ function App() {
                   <LayoutRoute path="/users" component={Users} layout={DashboardLayout} />
                   <LayoutRoute path="/ideas" component={Ideas} layout={DashboardLayout} />
                   <LayoutRoute path="/works" component={Works} layout={DashboardLayout} />
-                  <LayoutRoute path="/evaluation" component={Evaluation} layout={DashboardLayout} />
-                  <LayoutRoute exact path="/" component={Home} layout={TitleLayout} />
+                  <LayoutRoute path="/overviews" component={Overviews} layout={DashboardLayout} />
+                  <LayoutRoute exact path="/" component={Home} layout={DashboardLayout} />
                   <LayoutRoute component={NotFound} layout={MessageLayout} backgroundColor={mainTheme.colors.infoBackground} color={mainTheme.colors.infoForeground} />     
                 </Switch>
               </Router>

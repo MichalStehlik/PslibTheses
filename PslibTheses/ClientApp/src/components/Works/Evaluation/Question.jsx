@@ -7,6 +7,7 @@ import axios from "axios";
 import styled from 'styled-components';
 import { Card } from '../../general';
 import { ReactComponent as CheckmarkIcon } from "../../../assets/icons/check.svg";
+import { ReactComponent as CriticalIcon } from "../../../assets/icons/warning_triangle.svg";
 
 const StyledAnswer = styled.div`
     display: grid;
@@ -22,16 +23,15 @@ const StyledAnswer = styled.div`
     &:hover {border-color: black};
 `;
 
-const StyledAnswerCheck = styled.div`
+const StyledAnswerCheck = styled(CheckmarkIcon)`
     grid-area: check;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    & > svg {
-        width: 24px;
-        fill: ${props => props.selected ? props.theme.colors.successBackground : "inherit"};
-        stroke: ${props => props.selected ? props.theme.colors.successBackground : "inherit"};
-    }
+    fill:  red;
+    stroke: ${props => props.theme.colors.successBackground};
+    width: 32px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 `;
 
 const StyledAnswerText = styled.div`
@@ -45,8 +45,15 @@ const StyledAnswerDescription = styled.div`
     margin: .5em;
 `;
 
-const StyledAnswerCritical = styled.div`
+const StyledAnswerCritical = styled(CriticalIcon)`
     grid-area: critical;
+    fill:  red;
+    stroke: ${props => props.theme.colors.errorBackground};
+    width: 32px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 `;
 
 const StyledQuestionFooter = styled(CardFooter)`
@@ -68,14 +75,15 @@ const StyledQuestionFooterDate = styled.span`
 
 const Answer = ({ answer, selected, editable, submitAction, work, question }) => {
     return (
-        <StyledAnswer selected={selected} onClick={e => {
+        <StyledAnswer onClick={e => {
             if (editable) {
                 submitAction(work.id, question.id, answer.id);
             }
         }}>
-            <StyledAnswerCheck selected={selected}><CheckmarkIcon /> </StyledAnswerCheck>
+            {selected ? <StyledAnswerCheck /> : null}
             <StyledAnswerText>{answer.text}</StyledAnswerText>
             {answer.description ? <StyledAnswerDescription dangerouslySetInnerHTML={{ __html: answer.description }} /> : null}
+            {answer.critical ? <StyledAnswerCritical /> :""}
         </StyledAnswer>
     )
 }

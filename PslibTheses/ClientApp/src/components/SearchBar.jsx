@@ -6,12 +6,13 @@ import axios from "axios";
 const StyledSearchBar = styled.div`
     display: flex;
     flex-direction: row;
-    flex-grow: 1;
+    width: 100%;
 `;
 const StyledSearchInput = styled(Input)`
     flex-grow: 1;
     border-bottom-color: ${props => props.theme.colors.menuForeground};
     color: ${props => props.theme.colors.menuForeground};
+width: 50px;
 &:focus {
     box-shadow: 0 6px 3px -3px rgba(255,255,255,.3);
     outline: none;
@@ -32,7 +33,7 @@ const SearchBar = ({setSearchResults, ...rest}) => {
         <StyledSearchBar>
             <StyledSearchInput 
                 autoFocus={true} 
-                placeholder="Název hledané práce, zadání nebo jména uživatele"
+                placeholder="Vyhledávání"
                 value={searchText} 
                 onChange={e=>{
                     setSearchText(e.target.value);

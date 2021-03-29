@@ -3,13 +3,10 @@ import styled from 'styled-components';
 import {useAppContext} from "../providers/ApplicationProvider";
 import NavigationLink from "./common/NavigationLink";
 import {ReactComponent as WorkIcon} from "../assets/icons/graduate.svg";
-import {ReactComponent as HomeIcon} from "../assets/icons/home3.svg";
-import {ReactComponent as SearchIcon} from "../assets/icons/search.svg";
 import {ReactComponent as IdeaIcon} from "../assets/icons/lightbulb.svg";
 import {ReactComponent as OverviewIcon} from "../assets/icons/table2.svg";
 import {ReactComponent as UserIcon} from "../assets/icons/user.svg";
 import {ReactComponent as HammerIcon} from "../assets/icons/hammer.svg";
-import {ReactComponent as EvaluationIcon} from "../assets/icons/check.svg";
 
 import {devices} from "../configuration/layout";
 import {ADMIN_ROLE} from "../configuration/constants";
@@ -77,15 +74,13 @@ const MainMenuItem = props => {
     return <StyledMainMenuItem {...rest}>{icon}<span>{text}</span></StyledMainMenuItem>;
 }
 
-const MainMenu = props => {
+const MainMenu = () => {
     const [{accessToken, profile}] = useAppContext();
     return (
-    <StyledMainMenu>
-        <MainMenuItem to="/" exact icon={<SearchIcon />} text="Vyhledávání" />
+        <StyledMainMenu>
         <MainMenuItem to="/ideas" icon={<IdeaIcon />} text="Náměty" />
         <MainMenuItem to="/works" icon={<WorkIcon />} text="Práce" />
         <MainMenuItem to="/overviews" icon={<OverviewIcon />} text="Souhrny" />
-        <MainMenuItem to="/evaluation" icon={<EvaluationIcon />} text="Hodnocení" />
         <MainMenuItem to="/users" icon={<UserIcon />} text="Uživatelé" />
         {accessToken && (profile[ADMIN_ROLE] === "1") ? <MainMenuItem to="/admin" icon={<HammerIcon />} text="Administrace" /> : ""}
     </StyledMainMenu>

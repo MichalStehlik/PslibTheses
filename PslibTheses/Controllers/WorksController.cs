@@ -1554,10 +1554,6 @@ namespace PslibTheses.Controllers
                 answeredQuestions++;
                 answeredPoints += wa.Points;
             }
-                /*
-                .GroupBy(sq => 1)
-                .Select(sq => new QuestionsPointsStats { Questions = sq.Count(), Points = sq.Sum(s => (s.SetAnswer.Rating)) }).SingleOrDefaultAsync();
-                */
             var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
             if (isEvaluator.Succeeded)
             {

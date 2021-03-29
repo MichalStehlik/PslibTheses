@@ -1,10 +1,11 @@
-import React from "react";
+﻿import React from "react";
 import styled from 'styled-components';
 import {Link} from "react-router-dom";
 import {ReactComponent as UserIcon} from "../assets/icons/user.svg";
 import {ReactComponent as IdeaIcon} from "../assets/icons/lightbulb.svg";
 import {ReactComponent as WorkIcon} from "../assets/icons/graduate.svg";
-import {ReactComponent as SetIcon} from "../assets/icons/folder.svg";
+import { ReactComponent as SetIcon } from "../assets/icons/folder.svg";
+import { Heading } from "../components/general";
 
 const StyledFoundItems = styled.div`
     display: flex;
@@ -16,13 +17,13 @@ const StyledFoundItem = styled(Link)`
     display: grid;
     grid-template-columns: 50px auto;
     grid-template-areas: "icon name" "icon description";
-    border: 1px solid white;
+    border-bottom: 1px solid #bbbbbb;
     padding: 5px;
     margin-bottom: .2rem;
-    color: white;
     text-decoration: none;
+    color: black;
     &:hover {
-        background-color: rgba(100,100,100, .3);
+        background-color: rgba(200,200,200, .3);
     }
 `;
 
@@ -32,13 +33,14 @@ const StyledFoundItemIcon = styled.div`
     justify-content: center;
     align-items: center;
     & > svg {
-        height: 1.3em;
+        width: 18px;
+        fill: black;
     }
 `;
 
 const StyledFoundItemName = styled.p`
     grid-area: name;
-    font-size: 1.2em;
+    font-size: 1em;
     margin: .2rem;
 `;
 
@@ -68,12 +70,16 @@ const FoundItem = ({item}) => {
 }
 
 const FoundItems = ({items}) => {
-    return(
-        <StyledFoundItems>
-        {items.map((item,index)=>(
-            <FoundItem key={index} item={item} />
-        ))}
-        </StyledFoundItems>
+    return (
+        <>
+            <Heading>Nalezený obsah</Heading>
+            <p>Bylo nalezeno { items.length } předmětů odpovídajících hledanému výrazu.</p>
+            <StyledFoundItems>
+            {items.map((item,index)=>(
+                <FoundItem key={index} item={item} />
+            ))}
+            </StyledFoundItems>
+        </>
     );
 }
 
