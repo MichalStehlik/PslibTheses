@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from "react-router-dom";
 import { useAppContext, SET_TITLE } from "../../../providers/ApplicationProvider";
 import { ActionLink, Alert, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Loader } from "../../general";
@@ -6,7 +6,9 @@ import LoadedUser from "../../common/LoadedUser";
 import DateTime from "../../common/DateTime";
 import styled from 'styled-components';
 import axios from "axios";
+import { ADMIN_ROLE, MANAGER_ROLE } from "../../../configuration/constants";
 import requireEvaluator from "../../Auth/requireEvaluator";
+import Questions from "./Questions";
 
 const StyledQuestionsLayout = styled.span`
     display: flex;
@@ -28,6 +30,16 @@ const Evaluation = props => {
     const [termData, setTermData] = useState(null);
     const [isTermLoading, setIsTermLoading] = useState(false);
     const [termError, setTermError] = useState(false);
+    const isEditable = useMemo(() => {
+        return (
+            profile && workData && roleData &&
+            (workData.state === 1 || workData.state === 3) &&
+            (!roleData.finalized) &&
+            (profile[ADMIN_ROLE] === "1" || roleData.workRoleUsers.map((item) => (item.userId)).includes(profile.sub)));
+    }, [workData, roleData, profile]);
+    const isVisible = useMemo(() => {
+        return (profile && roleData && (profile[ADMIN_ROLE] === "1" || profile[MANAGER_ROLE] === "1" || roleData.workRoleUsers.map((item) => (item.userId)).includes(profile.sub)));
+    }, [roleData, profile]);
 
     const fetchWorkData = useCallback(id => {
         setIsWorkLoading(true);
@@ -83,7 +95,6 @@ const Evaluation = props => {
         })
             .then(response => {
                 setRoleData(response.data);
-                console.log(response.data);
             })
             .catch(error => {
                 if (error.response) {
@@ -112,31 +123,68 @@ const Evaluation = props => {
         <>
             <ActionLink to={"/works/" + id}>Tato práce</ActionLink>
             <StyledQuestionsLayout>
-                {(workData && termData && roleData) ?
-                    <>
-                        <Card>
-                            <CardHeader>
-                                <Heading>Práce, termín a role</Heading>
-                            </CardHeader>
-                            <CardBody>
-                                <CardTypeValueList>
-                                    <CardTypeValueItem type="Práce" value={workData.name} />
-                                    <CardTypeValueItem type="Autor" value={<LoadedUser id={workData.authorId} />} />
-                                    <CardTypeValueItem type="Termín" value={[termData.name," (",<DateTime date={termData.date} showTime={false} />,")"]} />
-                                    <CardTypeValueItem type="Role" value={[roleData.setRole.name," (",(roleData.finalized ? "Uzavřené hodnocení" : "Otevřené hodnocení"),")"]} />
-                                </CardTypeValueList>
-                            </CardBody>
-                        </Card>
-                    </>
-                    :
-                    (workError || termError || roleError) ?
+                {(isWorkLoading || isTermLoading || isRoleLoading) 
+                ?
+                    <Loader size="2em" />
+                :
+                    (workError || termError || roleError) 
+                        ?
                         <>
-                            {workError ? <Alert variant="error" text="Při získávání dat sady došlo k chybě." /> : ""}
+                            {workError ? <Alert variant="error" text="Při získávání dat práce došlo k chybě." /> : ""}
                             {termError ? <Alert variant="error" text="Při získávání dat termínu došlo k chybě." /> : ""}
                             {roleError ? <Alert variant="error" text="Při získávání dat role došlo k chybě." /> : ""}
                         </>
                         :
-                        <Loader size="2em" />
+                            (workData && termData && roleData)
+                            ?
+                            <>
+                                <Card>
+                                    <CardHeader>
+                                        <Heading>Hodnocení práce</Heading>
+                                    </CardHeader>
+                                    <CardBody>
+                                        <CardTypeValueList>
+                                            <CardTypeValueItem type="Práce" value={workData.name} />
+                                            <CardTypeValueItem type="Autor" value={<LoadedUser id={workData.authorId} />} />
+                                            <CardTypeValueItem type="Termín" value={[termData.name, " (", <DateTime key="datedata" date={termData.date} showTime={false} />, ")"]} />
+                                            <CardTypeValueItem type="Role" value={[roleData.setRole.name, " (", (roleData.finalized ? "Uzavřené hodnocení" : "Otevřené hodnocení"), ")"]} />
+                                        <CardTypeValueItem type="Hodnotitelé" value={roleData.workRoleUsers.map((item, index) => (<LoadedUser key={ index } id={item.userId} />))} />
+                                        </CardTypeValueList>
+                                    </CardBody>
+                                </Card>
+                                {roleData.workRoleUsers.map((item) => (item.userId)).includes(profile.sub)
+                                    ?
+                                    null
+                                    :
+                                    <Alert variant="warning" text="V této práci a roli nejste hodnotitelem." />
+                                }
+                                {role.finalized
+                                    ?
+                                    <Alert variant="warning" text="´Hodnocení v této roli je již uzavřené." />
+                                    :
+                                    null
+                                }
+                                {workData.state !== 1 && workData.state !== 3
+                                    ?
+                                    <Alert variant="warning" text="Práce není v hodnotitelném stavu." />
+                                    :
+                                    null
+                                }
+                                {isEditable
+                                    ?
+                                    <Alert text="Odpověď u každé otázky vyberete kliknutím na ni." variant="info" />
+                                    :
+                                    null
+                                }
+                                {isVisible
+                                    ?
+                                    <Questions work={workData} role={roleData} term={termData} editable={isEditable } />
+                                    :
+                                    null
+                                }
+                            </>
+                            :
+                            <Loader size="2em" />
                 }
             </StyledQuestionsLayout>
         </>

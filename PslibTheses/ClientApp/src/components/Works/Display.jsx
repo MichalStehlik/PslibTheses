@@ -4,12 +4,11 @@ import {Modal, CardHeader, CardBody, Subheading, CardTypeValueList, CardTypeValu
 import {DateTime, LoadedUser} from "../common";
 import {useHistory} from "react-router-dom";
 import {Link} from "react-router-dom";
-import {ADMIN_ROLE, EVALUATOR_ROLE} from "../../configuration/constants";
 import {WorkStates} from "../../configuration/constants";
 import axios from "axios";
 
 const Display = props => {
-    const [{accessToken, profile}, dispatch] = useAppContext();
+    const [{accessToken}, dispatch] = useAppContext();
     const [showDelete, setShowDelete] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [setResponse, setSetResponse] = useState(null);
@@ -23,14 +22,14 @@ const Display = props => {
         .then(response => {
             setSetResponse(response.data);
         })
-    },[props.data]);
+    },[props.data, accessToken]);
     let history = useHistory();
     useEffect(() => {
         setShowDelete(false);
         setIsDeleting(false);
         fetchSetData();
-        return () => {setShowDelete(false); setIsDeleting(false);};
-    },[]);
+        return () => { setShowDelete(false); setIsDeleting(false); };
+    }, [setShowDelete, setIsDeleting, fetchSetData]);
     return (
         <>
         <CardHeader><Subheading>Obecné informace</Subheading></CardHeader>

@@ -1363,7 +1363,7 @@ namespace PslibTheses.Controllers
             {
                 return NotFound("work not found");
             }
-            var roles = _context.WorkRoles.Include(wr => wr.SetRole).Where(wr => wr.WorkId == work.Id).ToList();
+            var roles = _context.WorkRoles.Include(wr => wr.SetRole).Include(wr => wr.WorkRoleUsers).Where(wr => wr.WorkId == work.Id).ToList();
             return roles;
         }
 
@@ -1375,7 +1375,11 @@ namespace PslibTheses.Controllers
             {
                 return NotFound("work not found");
             }
-            var role = _context.WorkRoles.Include(wr => wr.SetRole).Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            var role = _context.WorkRoles.Include(wr => wr.SetRole).Include(wr => wr.WorkRoleUsers).Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            if (role == null)
+            {
+                return NotFound("role not found");
+            }
             var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
             if (!isEvaluator.Succeeded && !User.HasClaim(ClaimTypes.NameIdentifier, work.AuthorId.ToString()) && work.State < WorkState.Evaluated)
             {
@@ -1539,13 +1543,21 @@ namespace PslibTheses.Controllers
             var setQuestionsStats = await _context.SetQuestions.Where(sq => sq.SetRoleId == setRoleId && sq.SetTermId == setTermId)
                 .GroupBy(sq => 1)
                 .Select(sq => new QuestionsPointsStats { Questions = sq.Count(), Points = sq.Sum(s => s.Points) }).SingleOrDefaultAsync();
-            var workAnswersStats = await _context.WorkEvaluations
+            var workAnswers = await _context.WorkEvaluations
                 .Include(wa => wa.SetQuestion)
                 .Include(wa => wa.SetAnswer)
-                .Where(wa => wa.WorkId == id)
+                .Where(wa => wa.WorkId == id && wa.SetQuestion.SetRoleId == setRoleId && wa.SetQuestion.SetTermId == setTermId).ToListAsync();
+            int answeredQuestions = 0;
+            int answeredPoints = 0;
+            foreach (var wa in workAnswers)
+            {
+                answeredQuestions++;
+                answeredPoints += wa.Points;
+            }
+                /*
                 .GroupBy(sq => 1)
-                .Select(sq => new QuestionsPointsStats { Questions = sq.Count(), Points = sq.Sum(s => (s.SetAnswerId)) }).SingleOrDefaultAsync();
-
+                .Select(sq => new QuestionsPointsStats { Questions = sq.Count(), Points = sq.Sum(s => (s.SetAnswer.Rating)) }).SingleOrDefaultAsync();
+                */
             var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
             if (isEvaluator.Succeeded)
             {
@@ -1553,8 +1565,8 @@ namespace PslibTheses.Controllers
                 {
                     TotalQuestions = setQuestionsStats.Questions,
                     TotalPoints = setQuestionsStats.Points,
-                    FilledQuestions = workAnswersStats.Questions,
-                    GainedPoints = workAnswersStats.Points
+                    FilledQuestions = answeredQuestions,
+                    GainedPoints = answeredPoints
                 });
             }
             else
@@ -1590,9 +1602,11 @@ namespace PslibTheses.Controllers
 
         [Authorize]
         [HttpGet("{id}/questions/{questionId}", Name = "GetWorkQuestion")]
-        public async Task<ActionResult<SetRole>> GetWorkQuestion(int id, int questionId)
+        public async Task<ActionResult<SetQuestion>> GetWorkQuestion(int id, int questionId)
         {
-            var work = await _context.Works.Include(w => w.Author).Where(w => w.Id == id).FirstOrDefaultAsync();
+            var work = await _context.Works
+                .Include(w => w.Author)
+                .Where(w => w.Id == id).FirstOrDefaultAsync();
             if (work == null)
             {
                 return NotFound("work not found");
@@ -1612,7 +1626,7 @@ namespace PslibTheses.Controllers
 
         [Authorize]
         [HttpGet("{id}/questions/{questionId}/answers")]
-        public async Task<ActionResult<IEnumerable<SetQuestion>>> GetWorkAnswers(int id, int questionId)
+        public async Task<ActionResult<IEnumerable<SetAnswer>>> GetWorkAnswers(int id, int questionId)
         {
             var work = await _context.Works.Include(w => w.Author).Where(w => w.Id == id).FirstOrDefaultAsync();
             if (work == null)
@@ -1634,6 +1648,145 @@ namespace PslibTheses.Controllers
                 .OrderByDescending(sa => sa.Rating)
                 .ToList();
             return Ok(setAnswers);
+        }
+
+        [Authorize]
+        [HttpGet("{id}/questions/{questionId}/evaluation")]
+        public async Task<ActionResult<WorkEvaluation>> GetWorkEvaluation(int id, int questionId)
+        {
+            var work = await _context.Works.Include(w => w.Author).Where(w => w.Id == id).FirstOrDefaultAsync();
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var question = await _context.SetQuestions.FindAsync(questionId);
+            if (question == null)
+            {
+                return NotFound("question not found");
+            }
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!User.HasClaim(ClaimTypes.NameIdentifier, work.AuthorId.ToString()) && !isEvaluator.Succeeded)
+            {
+                return Unauthorized("only author or privileged user can list answers for questions of this work");
+            }
+            var workEvaluation = _context.WorkEvaluations
+                .Where(we => we.SetQuestionId == questionId && we.WorkId == id)
+                .SingleOrDefault();
+            return Ok(workEvaluation);
+        }
+
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        [HttpPost("{id}/questions/{questionId}/evaluation")]
+        public async Task<ActionResult> PostWorkEvaluation(int id, int questionId, [FromBody] WorkAnswerIM input)
+        {
+            if (id != input.WorkId || questionId != input.QuestionId)
+            {
+                return BadRequest("request is inconsistent");
+            }
+            var work = await _context.Works.FindAsync(id);
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var question = await _context.SetQuestions.FindAsync(questionId);
+            _context.Entry(question).Reference(q => q.Role).Load();
+            if (question == null)
+            {
+                return NotFound("question not found");
+            }
+            var answer = await _context.SetAnswers.FindAsync(input.AnswerId);
+            if (answer == null)
+            {
+                return NotFound("answer not found");
+            }
+            var role = await _context.WorkRoles.Where(wr => wr.SetRoleId == question.SetRoleId && wr.WorkId == work.Id).SingleOrDefaultAsync();
+            _context.Entry(role).Collection(wr => wr.WorkRoleUsers).Load();
+            if (role == null)
+            {
+                return NotFound("role not found");
+            }
+            if (role.Finalized)
+            {
+                return BadRequest("evaluation in this role has been finalized");
+            }
+            if (answer.SetQuestionId != questionId)
+            {
+                return BadRequest("answer is not in this specific question");
+            }
+            ICollection<string> evaluators = role.WorkRoleUsers.Select(wru => wru.UserId.ToString()).ToArray();
+            var userId = User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
+            var isAdmin = await _authorizationService.AuthorizeAsync(User, "Administrator");
+            if (!evaluators.Contains(userId) && !isAdmin.Succeeded)
+            {
+                return Unauthorized("user is nor administrator nor evaluator in this role");
+            }
+            if (work.State != WorkState.WorkedOut && work.State != WorkState.Delivered)
+            {
+                return BadRequest("work is in invalid state");
+            }
+            var evaluationRecord = _context.WorkEvaluations.Where(we => we.WorkId == work.Id && we.SetQuestionId == question.Id).SingleOrDefault();
+            if (evaluationRecord != null)
+            {
+                _context.WorkEvaluations.Remove(evaluationRecord);
+                _context.SaveChanges();
+            }
+            WorkEvaluation newRecord = new WorkEvaluation { 
+                WorkId = work.Id,
+                SetQuestionId = question.Id,
+                SetAnswerId = answer.Id,
+                CreatedById = Guid.Parse(userId),
+                Created = DateTime.Now
+            };
+            _context.WorkEvaluations.Add(newRecord);
+            _context.SaveChanges();
+
+            return Ok(newRecord);
+        }
+
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        [HttpDelete("{id}/questions/{questionId}/evaluation")]
+        public async Task<ActionResult> DeleteWorkEvaluation(int id, int questionId)
+        {
+            var work = await _context.Works.FindAsync(id);
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var question = await _context.SetQuestions.FindAsync(questionId);
+            _context.Entry(question).Reference(q => q.Role).Load();
+            if (question == null)
+            {
+                return NotFound("question not found");
+            }
+            var role = await _context.WorkRoles.Where(wr => wr.SetRoleId == question.SetRoleId && wr.WorkId == work.Id).SingleOrDefaultAsync();
+            _context.Entry(role).Collection(wr => wr.WorkRoleUsers).Load();
+            if (role == null)
+            {
+                return NotFound("role not found");
+            }
+            if (role.Finalized)
+            {
+                return BadRequest("evaluation in this role has been finalized");
+            }
+            ICollection<string> evaluators = role.WorkRoleUsers.Select(wru => wru.UserId.ToString()).ToArray();
+            var userId = User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
+            var isAdmin = await _authorizationService.AuthorizeAsync(User, "Administrator");
+            if (!evaluators.Contains(userId) && !isAdmin.Succeeded)
+            {
+                return Unauthorized("user is nor administrator nor evaluator in this role");
+            }
+            if (work.State != WorkState.WorkedOut && work.State != WorkState.Delivered)
+            {
+                return BadRequest("work is in invalid state");
+            }
+            var evaluationRecord = _context.WorkEvaluations.Where(we => we.WorkId == work.Id && we.SetQuestionId == question.Id).SingleOrDefault();
+            if (evaluationRecord != null)
+            {
+                _context.WorkEvaluations.Remove(evaluationRecord);
+                _context.SaveChanges();
+            }
+
+            return Ok(evaluationRecord);
         }
 
         // print version

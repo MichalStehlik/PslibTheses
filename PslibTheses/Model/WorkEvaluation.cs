@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PslibTheses.Model
@@ -13,17 +14,22 @@ namespace PslibTheses.Model
     {
         [Required]
         public int WorkId { get; set; }
+        [JsonIgnore]
         public Work Work { get; set; }
         [Required]
         public int SetQuestionId { get; set; }
+        [JsonIgnore]
         public SetQuestion SetQuestion { get; set; }
         [Required]
         public int SetAnswerId { get; set; }
+        [JsonIgnore]
         public SetAnswer SetAnswer { get; set; }
         [NotMapped]
-        public int Points { get { return SetQuestion.Points * SetAnswer.Rating; } }
+        public int Points { get { if (SetQuestion != null && SetAnswer != null) return SetQuestion.Points * SetAnswer.Rating / 100; else return 0; } }
         [Required]
         public Guid CreatedById { get; set; }
+        [JsonIgnore]
+        [ForeignKey("CreatedById")]
         public User CreatedBy { get; set; }
         [Required]
         [Column(TypeName = "datetime2")]

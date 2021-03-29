@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PslibTheses.Model
@@ -18,6 +19,7 @@ namespace PslibTheses.Model
         public int Rating { get; set; }
         public bool Critical { get; set; }
         [ForeignKey("SetQuestionId")]
+        [JsonIgnore]
         public SetQuestion Question { get; set; }
         [Required]
         public int SetQuestionId { get; set; }

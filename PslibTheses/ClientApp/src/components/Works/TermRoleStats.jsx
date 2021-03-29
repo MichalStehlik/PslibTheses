@@ -51,15 +51,15 @@ const TermRoleStats = ({ termId, roleId, workId }) => {
         return (
             <StyledTermRoleStatsContainer>
                 <StyledTermRoleStatsQuestionsContainer>
-                    {response.filledQuestions !== null ? (Number(response.filledQuestions) + "/") : ""}{Number(response.totalQuestions)}
+                    <small>Otázky:</small> {response.filledQuestions !== null ? (Number(response.filledQuestions) + "/") : ""}{Number(response.totalQuestions)}
                 </StyledTermRoleStatsQuestionsContainer>
                 <StyledTermRoleStatsPointsContainer>
                 {response.totalPoints !== null
                 ?
-                    Number(response.gainedPoints) + "/" + Number(response.totalPoints)
+                "Body: " + Number(response.gainedPoints) + "/" + Number(response.totalPoints)
                 :    
-                    ""
-                    }
+                ""
+                }
                 </StyledTermRoleStatsPointsContainer>
             </StyledTermRoleStatsContainer>
         );

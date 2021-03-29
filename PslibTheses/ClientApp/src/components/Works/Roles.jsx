@@ -49,87 +49,27 @@ const UserInRole = ({userId, removeUserAction, isEditable}) => {
     )   
 }
 
-const UsersInRole = ({work, role, setEditedRole, switchMode, accessToken, removeUserAction, fetchAction, isEditable, profile, myRoles, setMyRoles}) => {
-    const [users, setUsers] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(false);
-    const fetchData = useCallback(() => {
-        setIsLoading(true);
-        setError(false);
-        axios.get(process.env.REACT_APP_API_URL + "/works/" + work + "/roles/" + role.id + "/users",{
-            headers: {
-                Authorization: "Bearer " + accessToken,
-                "Content-Type": "application/json"
-            } 
-        })
-        .then(response => {
-            setUsers(response.data);
-            let roles = [...myRoles];
-            let isMyRole = false;
-            response.data.forEach(u =>
-            {
-                if (u.id === profile.sub) isMyRole = true;
-            });
-            let rolesPos = roles.indexOf(role.id);
-            if (rolesPos >= 0)
-            {
-                roles.splice(rolesPos, 1);
-            }
-            if (isMyRole)
-            {
-                roles.push(role.id);
-            }
-            setMyRoles(roles);
-        })
-        .catch(error => {
-            if (error.response) {
-                setError({status: error.response.status, text: error.response.statusText});
-            }
-            else
-            {
-                setError({status: 0, text: "Neznámá chyba"});
-            }         
-            setUsers([]);
-        });
-        setIsLoading(false);
-    }, [accessToken, work, role, profile, setMyRoles]);
-    useEffect(()=>{
-        fetchData();
-    },[work, role, accessToken, fetchData]);
-    if (isLoading)
-    {
-        return <Loader />;
-    }
-    else if (error) {
-        return <Alert variant="error" text="Došlo k chybě." />;
-    }
-    else if (users)
-    {
-        return (
-            <StyledUsersInRole>
-                {Array.isArray(users) 
+const UsersInRole = ({work, role, setEditedRole, switchMode, removeUserAction, isEditable}) => {
+    return (
+        <StyledUsersInRole>
+            {Array.isArray(role.workRoleUsers)
                 ?
-                users.map((item,index)=>(
-                    <UserInRole key={index} userId={item.id} removeUserAction={e => {removeUserAction(work, role.id, item.id); fetchAction();}} isEditable={isEditable} />
+                role.workRoleUsers.map((item, index) => (
+                    <UserInRole key={index} userId={item.userId} removeUserAction={e => { removeUserAction(work, role.id, item.userId); }} isEditable={isEditable} />
                 ))
-                : 
-                ""
-                }
-                {isEditable ?
-                    <AddMiniButton onClick={e => {
-                        setEditedRole(role.id);
-                        switchMode(ASSIGN_ROLES);
-                }}  />
                 :
                 ""
-                }
-            </StyledUsersInRole>
-        ) 
-    }
-    else
-    {
-        return <Loader />;
-    }
+            }
+            {isEditable ?
+                <AddMiniButton onClick={e => {
+                    setEditedRole(role.id);
+                    switchMode(ASSIGN_ROLES);
+                }} />
+                :
+                ""
+            }
+        </StyledUsersInRole>
+    );
 }
 
 const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, workData, ...rest}) => {
@@ -141,7 +81,7 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
     const [termsResponse, setTermsResponse] = useState(null);
     const [isTermsLoading, setIsTermsLoading] = useState(false);
     const [termsError, setTermsError] = useState(false);
-    const [myRoles, setMyRoles] = useState([]);
+
     const fetchData = useCallback(() => {
         setIsRolesLoading(true);
         setRolesError(false);
@@ -163,8 +103,10 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                 setRolesError({status: 0, text: "Neznámá chyba"});
             }         
             setRolesResponse([]);
-        });
-        setIsRolesLoading(false);
+        })
+        .then(() => {
+            setIsRolesLoading(false);
+        })
     },[accessToken, id]);
     const fetchTerms = useCallback(() => {
         setIsTermsLoading(true);
@@ -198,12 +140,13 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
             } 
         })
         .then(response => {
-            dispatch({type: ADD_MESSAGE, text: "Hodnotitel byl odebrán.", variant: "success", dismissible: true, expiration: 3});
+            dispatch({ type: ADD_MESSAGE, text: "Hodnotitel byl odebrán.", variant: "success", dismissible: true, expiration: 3 });
+            fetchData();
         })
         .catch(error => {
             dispatch({type: ADD_MESSAGE, text: "Při odebírání hodnotitele došlo k chybě.", variant: "error", dismissible: true, expiration: 3});
         });
-    },[accessToken, dispatch]);
+    },[accessToken, dispatch, fetchData]);
     useEffect(()=>{
         fetchData();
         fetchTerms();
@@ -251,13 +194,8 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                             role={item}
                             switchMode={switchMode}
                             setEditedRole={setEditedRole}
-                            accessToken={accessToken}
                             removeUserAction={removeUser}
-                            fetchAction={fetchData}
                             isEditable={isEditable}
-                            myRoles={myRoles}
-                            setMyRoles={setMyRoles}
-                            profile={ profile }
                         />
                     </DataCell>
                 ))
@@ -294,9 +232,9 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                             <HeadCell>{term.name}<br /><TermDate><DateTime date={term.date} showTime={false}/></TermDate></HeadCell>
                             {rolesResponse.map((role, roleIndex) => (
                                 <DataCell key={roleIndex}>
-                                    <RoleTermWrapper>
-                                        <TermRoleStats termId={term.id} roleId={role.id} workId={workData.id} />
-                                        {!role.finalized && myRoles.includes(role.id) && (workData.state === 1 || workData.state === 3) ? <EditMiniButton onClick={e => { history.push("/works/" + workData.id + "/evaluation/" + role.id + "/" + term.id)} } /> : null}
+                                    <RoleTermWrapper onClick={e => { history.push("/works/" + workData.id + "/evaluation/" + role.id + "/" + term.id) }}>
+                                        <TermRoleStats termId={term.id} roleId={role.setRole.id} workId={workData.id} />
+                                        {!role.finalized && role.workRoleUsers.map((item) => (item.userId)).includes(profile.sub) && (workData.state === 1 || workData.state === 3) ? <EditMiniButton onClick={e => { history.push("/works/" + workData.id + "/evaluation/" + role.id + "/" + term.id)} } /> : null}
                                     </RoleTermWrapper>
                             </DataCell>
                             ))}
@@ -348,7 +286,7 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                                         {Array.isArray(rolesResponse) ? rolesResponse.map((role, roleIndex) => (
                                             <DataCell key={roleIndex}>
                                                 <ButtonBlock>
-                                                    {myRoles.includes(role.id) && (workData.state === 3)
+                                                    {role.workRoleUsers.map((item) => (item.userId)).includes(profile.sub) && (workData.state === 3)
                                                         ?
                                                         role.finalized ? <Button size="8pt" variant="warning" outline>Otevřít hodnocení</Button> : <Button size="8pt" variant="success" outline onClick={e => { history.push("/works/" + workData.id + "/review/" + role.id) }}>Upravit posudek</Button>
                                                         :
