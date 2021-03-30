@@ -10,14 +10,10 @@ import requireAuth from "../Auth/requireAuth";
 const Works = props => {
     return (
         <Switch>
-            <Route exact path="/evaluation" component={Sets} />
+            <Route exact path="/overviews" component={Sets} />
             <LayoutRoute component={NotFound} layout={MessageLayout} backgroundColor={theme.colors.infoBackground} color={theme.colors.infoForeground} />   
         </Switch>
     );
 }
 
 export default requireAuth(Works);
-
-/*
-            <Route path="/evaluation/:id" component={Detail} />
-*/

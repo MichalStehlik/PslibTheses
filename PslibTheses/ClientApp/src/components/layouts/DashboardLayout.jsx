@@ -1,7 +1,8 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import theme from "styled-theming";
 import { NavLink } from "react-router-dom";
+import axios from "axios";
 
 import {devices} from "../../configuration/layout";
 
@@ -22,13 +23,14 @@ grid-template-rows: 48px 0 auto 1fr;
 
 @media ${devices.tablet} {
     grid-template-columns: 48px 1fr;
-grid-template-areas: "logo header" "logo search" "navigation main" "navigation main";
+    grid-template-rows: auto 48px auto 1fr;
+    grid-template-areas: "logo search" "logo header" "navigation main" "navigation main";
 }
 
 @media ${devices.mobile} {
-    grid-template-areas: "header" "search" "main" "navigation";
+    grid-template-areas: "search" "header" "main" "navigation";
     grid-template-columns: 1fr;
-    grid-template-rows: 48px 1fr 48px;
+    grid-template-rows: auto 48px 1fr 48px;
 }
 `;
 
@@ -48,6 +50,10 @@ const SearchWrapper = styled.div`
 grid-area: search;
 background-color: ${props => props.theme.colors.menuBackground};
 padding: .5em;
+/*
+@media ${devices.tablet} {
+    background-color: ${props => props.theme.colors.desktopBackground};
+}*/
 `;
 
 const Logo = styled(NavLink)`
@@ -112,10 +118,20 @@ background-color: ${props => props.theme.colors.desktopBackground};
 color: ${props => props.theme.colors.desktopForeground};
 overflow: auto;
 position: relative;
+z-index: 100;
 `;
 
 const DashboardLayout = props => {
-    const [searchResults, setSearchResults] = useState([]);
+    const [searchResults, setSearchResults] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const processSearch = (text) => {
+        axios.get(process.env.REACT_APP_API_URL + "/search?search=" + text)
+            .then(response => {
+                if (response.data)
+                    setSearchResults(response.data);
+            })
+    }
+    useEffect(() => { if (searchTerm.length >= 3) processSearch(searchTerm); else setSearchResults(null);}, [searchTerm]);
     return (
         <DashboardLayoutWrapper>
             <LogoWrapper>
@@ -125,7 +141,7 @@ const DashboardLayout = props => {
                 </Logo>
             </LogoWrapper>
             <SearchWrapper>
-                <SearchBar setSearchResults={ setSearchResults } />
+                <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchAction={processSearch} />
             </SearchWrapper>
             <HeaderWrapper>
                 <TitlePanel />
@@ -138,10 +154,10 @@ const DashboardLayout = props => {
                 <AlertContainer />
                 {props.children}
             </ContentWrapper>
-            {searchResults.length > 0
+            {Array.isArray(searchResults)
                 ?
                 <FoundWrapper>
-                    <FoundItems items={searchResults} setSearchResults={setSearchResults} />
+                    <FoundItems items={searchResults} setSearchTerm={setSearchTerm} searchTerm={ searchTerm} />
                 </FoundWrapper>
                 :
                 null

@@ -1,4 +1,4 @@
-import React, {useState, useContext} from "react";
+import React, {useContext} from "react";
 import {Input, SearchMiniButton} from "./general";
 import styled, {ThemeContext} from 'styled-components';
 import axios from "axios";
@@ -19,32 +19,23 @@ width: 50px;
 }
 `;
 
-const SearchBar = ({setSearchResults, ...rest}) => {
-    const [searchText, setSearchText] = useState("");
+const SearchBar = ({searchAction, setSearchTerm, searchTerm, ...rest}) => {
     const themeContext = useContext(ThemeContext);
-    const processSearch = (text) => {
-        axios.get(process.env.REACT_APP_API_URL + "/search?search=" + text)
-        .then(response => {
-            if (response.data )
-            setSearchResults(response.data);
-        })
-    }
     return (
         <StyledSearchBar>
             <StyledSearchInput 
                 autoFocus={true} 
                 placeholder="Vyhledávání"
-                value={searchText} 
+                value={searchTerm} 
                 onChange={e=>{
-                    setSearchText(e.target.value);
-                    if (e.target.value.length >= 3) processSearch(e.target.value); else setSearchResults([]);
+                    setSearchTerm(e.target.value);
                 }}
                 onKeyDown={e=>{
                     if(e.key === "Enter")
-                        processSearch(e.target.value);
+                        searchAction(e.target.value);
                 }} 
             />
-            <SearchMiniButton color={themeContext.colors.menuForeground} disabled={searchText.length === 0} />
+            <SearchMiniButton color={themeContext.colors.menuForeground} disabled={searchTerm.length === 0} onClick={ e => searchAction(searchTerm)} />
         </StyledSearchBar>
     );
 }

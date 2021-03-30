@@ -11,6 +11,7 @@ const StyledFoundItems = styled.div`
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    z-index: 100;
 `;
 
 const StyledFoundItem = styled(Link)`
@@ -50,7 +51,7 @@ const StyledFoundItemDescription = styled.small`
     margin: .2rem;
 `;
 
-const FoundItem = ({ item, setSearchResults }) => {
+const FoundItem = ({ item, setSearchTerm }) => {
     let area = "";
     let icon;
     switch (item.type)
@@ -61,7 +62,7 @@ const FoundItem = ({ item, setSearchResults }) => {
         case 3: area = "sets"; icon = <SetIcon fill="white" height="2em" />; break;
     }
     return (
-        <StyledFoundItem to={"/" + area + "/" + item.id} onClick={e => { setSearchResults([])}}>
+        <StyledFoundItem to={"/" + area + "/" + item.id} onClick={e => { setSearchTerm("")}}>
             <StyledFoundItemIcon>{icon}</StyledFoundItemIcon>
             <StyledFoundItemName>{item.name}</StyledFoundItemName>
             <StyledFoundItemDescription>{item.description}</StyledFoundItemDescription>
@@ -69,14 +70,14 @@ const FoundItem = ({ item, setSearchResults }) => {
     );
 }
 
-const FoundItems = ({items, setSearchResults}) => {
+const FoundItems = ({items, setSearchTerm, searchTerm}) => {
     return (
         <>
             <Heading>Nalezený obsah</Heading>
-            <p>Bylo nalezeno { items.length } předmětů odpovídajících hledanému výrazu.</p>
+            <p>Bylo nalezeno <b>{items.length}</b> předmětů odpovídajících hledanému výrazu <b>{ searchTerm }</b>.</p>
             <StyledFoundItems>
             {items.map((item,index)=>(
-                <FoundItem key={index} item={item} setSearchResults={setSearchResults} />
+                <FoundItem key={index} item={item} setSearchTerm={setSearchTerm} />
             ))}
             </StyledFoundItems>
         </>

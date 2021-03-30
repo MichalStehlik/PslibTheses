@@ -1785,7 +1785,24 @@ namespace PslibTheses.Controllers
             return Ok(evaluationRecord);
         }
 
-        // print version
+        // notes
+        [Authorize]
+        [HttpGet("{id}/notes")]
+        public async Task<ActionResult<WorkRoleTermStatsVM>> GetWorkNotes(int id)
+        {
+            var work = await _context.Works.Where(w => w.Id == id).FirstOrDefaultAsync();
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var goals = _context.WorkNotes
+                .Where(wn => wn.Work == work)
+                .OrderBy(wn => wn.Created)
+                .AsNoTracking();
+            return Ok(goals);
+        }
+
+        // print version of application
         [HttpGet("{id}/application")]
         [Authorize]
         public async Task<ActionResult> DownloadApplication(int id)
