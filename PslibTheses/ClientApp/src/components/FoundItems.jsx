@@ -5,7 +5,15 @@ import {ReactComponent as UserIcon} from "../assets/icons/user.svg";
 import {ReactComponent as IdeaIcon} from "../assets/icons/lightbulb.svg";
 import {ReactComponent as WorkIcon} from "../assets/icons/graduate.svg";
 import { ReactComponent as SetIcon } from "../assets/icons/folder.svg";
-import { Heading } from "../components/general";
+import { Heading, CancelMiniButton } from "../components/general";
+
+const StyledFoundPage = styled.div`
+    background-color: ${props => props.theme.colors.headerBackground};
+    color: ${props => props.theme.colors.desktopForeground};
+    padding: 15px;
+    border-bottom: 1px solid #ccc;
+    box-shadow: 5px 5px 10px 5px rgb(10 10 5 / 20%)
+`;
 
 const StyledFoundItems = styled.div`
     display: flex;
@@ -59,10 +67,10 @@ const FoundItem = ({ item, setSearchTerm }) => {
         case 0: area = "ideas"; icon = <IdeaIcon fill="white" height="2em" />; break;
         case 1: area = "works"; icon = <WorkIcon fill="white" height="2em" />; break;
         case 2: area = "users"; icon = <UserIcon fill="white" height="2em" />; break;
-        case 3: area = "sets"; icon = <SetIcon fill="white" height="2em" />; break;
+        default: area = "sets"; icon = <SetIcon fill="white" height="2em" />; break;
     }
     return (
-        <StyledFoundItem to={"/" + area + "/" + item.id} onClick={e => { setSearchTerm("")}}>
+        <StyledFoundItem to={"/" + area + "/" + item.id} onClick={e => { setSearchTerm("") }}>
             <StyledFoundItemIcon>{icon}</StyledFoundItemIcon>
             <StyledFoundItemName>{item.name}</StyledFoundItemName>
             <StyledFoundItemDescription>{item.description}</StyledFoundItemDescription>
@@ -72,15 +80,15 @@ const FoundItem = ({ item, setSearchTerm }) => {
 
 const FoundItems = ({items, setSearchTerm, searchTerm}) => {
     return (
-        <>
-            <Heading>Nalezený obsah</Heading>
-            <p>Bylo nalezeno <b>{items.length}</b> předmětů odpovídajících hledanému výrazu <b>{ searchTerm }</b>.</p>
+        <StyledFoundPage>
+            <Heading>Nalezený obsah <CancelMiniButton onClick={e => setSearchTerm("")} /></Heading>
+            <p>Bylo nalezeno <b>{Array.isArray(items) && items.length ? items.length : 0}</b> předmětů odpovídajících hledanému výrazu <b>{ searchTerm }</b>.</p>
             <StyledFoundItems>
-            {items.map((item,index)=>(
+                {Array.isArray(items) && items.map((item, index) => (
                 <FoundItem key={index} item={item} setSearchTerm={setSearchTerm} />
             ))}
             </StyledFoundItems>
-        </>
+        </StyledFoundPage>
     );
 }
 

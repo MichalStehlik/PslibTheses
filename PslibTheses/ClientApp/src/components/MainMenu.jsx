@@ -27,6 +27,7 @@ const StyledMainMenuItem = styled(NavigationLink)`
     flex-basis: 32px;
     padding: 5px 5px 5px 40px;
     justify-content: flex-start;
+    color: ${props => props.theme.colors.menuForeground};
 
     &:before {
         top: 0;
@@ -41,6 +42,15 @@ const StyledMainMenuItem = styled(NavigationLink)`
         top: 50%;
         transform: translateY(-50%);
         width: 18px;
+        fill: ${props => props.theme.colors.menuForeground};
+    }
+
+    &.active {
+        color: ${props => props.theme.colors.selectedMenuForeground};
+    }
+
+    &.active svg {
+        fill: ${props => props.theme.colors.selectedMenuForeground};
     }
 
     @media ${devices.tablet} {

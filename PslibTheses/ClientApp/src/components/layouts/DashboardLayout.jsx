@@ -24,11 +24,11 @@ grid-template-rows: 48px 0 auto 1fr;
 @media ${devices.tablet} {
     grid-template-columns: 48px 1fr;
     grid-template-rows: auto 48px auto 1fr;
-    grid-template-areas: "logo search" "logo header" "navigation main" "navigation main";
+    grid-template-areas: "logo header" "logo search" "navigation main" "navigation main";
 }
 
 @media ${devices.mobile} {
-    grid-template-areas: "search" "header" "main" "navigation";
+    grid-template-areas: "header" "search" "main" "navigation";
     grid-template-columns: 1fr;
     grid-template-rows: auto 48px 1fr 48px;
 }
@@ -49,11 +49,20 @@ display: none;
 const SearchWrapper = styled.div`
 grid-area: search;
 background-color: ${props => props.theme.colors.menuBackground};
+color: ${props => props.theme.colors.menuForeground};
 padding: .5em;
-/*
+
 @media ${devices.tablet} {
-    background-color: ${props => props.theme.colors.desktopBackground};
-}*/
+    background-color: ${props => props.theme.colors.headerBackground};
+    color: ${props => props.theme.colors.headerForeground};
+    border-bottom: 1px solid #ccc;
+}
+
+@media ${devices.mobile} {
+    background-color: ${props => props.theme.colors.headerBackground};
+    color: ${props => props.theme.colors.headerForeground};
+    border-bottom: 1px solid #ccc;
+}
 `;
 
 const Logo = styled(NavLink)`
@@ -84,7 +93,8 @@ color: ${props => props.theme.colors.logoForeground};
 
 const HeaderWrapper = styled.div`
 grid-area: header;
-background-color: white;
+background-color: ${props => props.theme.colors.headerBackground};
+color: ${props => props.theme.colors.headerForeground};
 display: flex;
 flex-direction: row;
 justify-content: space-between;
@@ -113,9 +123,6 @@ position: relative;
 
 const FoundWrapper = styled.div`
 grid-area: main;
-padding: 15px;
-background-color: ${props => props.theme.colors.desktopBackground};
-color: ${props => props.theme.colors.desktopForeground};
 overflow: auto;
 position: relative;
 z-index: 100;
@@ -157,7 +164,7 @@ const DashboardLayout = props => {
             {Array.isArray(searchResults)
                 ?
                 <FoundWrapper>
-                    <FoundItems items={searchResults} setSearchTerm={setSearchTerm} searchTerm={ searchTerm} />
+                    <FoundItems items={searchResults} setSearchTerm={setSearchTerm} searchTerm={searchTerm} />
                 </FoundWrapper>
                 :
                 null

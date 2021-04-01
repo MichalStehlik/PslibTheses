@@ -83,7 +83,7 @@ z-index: 100;
 
 const StyledDismissButton = styled.span`
 font-size: 12px;
-fill: white;
+fill: ${foregroundColor};
 margin: 3px;
 cursor: default;
 `;

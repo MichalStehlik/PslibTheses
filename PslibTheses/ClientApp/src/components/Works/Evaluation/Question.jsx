@@ -27,7 +27,8 @@ const StyledAnswerCheck = styled(CheckmarkIcon)`
     grid-area: check;
     fill:  red;
     stroke: ${props => props.theme.colors.successBackground};
-    width: 32px;
+    width: 18px;
+    height: 18px;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -54,6 +55,15 @@ const StyledAnswerCritical = styled(CriticalIcon)`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+`;
+
+const StyledQuestionText = styled.p`
+    margin: 0;
+`;
+
+const StyledQuestionDescription = styled.div`
+    color: #aaa;
+    font-size: 8pt;
 `;
 
 const StyledQuestionFooter = styled(CardFooter)`
@@ -226,8 +236,8 @@ const Question = ({ work, questionId, editable }) => {
         return (
             <Card>
                 <CardBody>
-                    <p>{response.text}</p>
-                    {response.description ? <small>{response.description}</small> : null}
+                    <StyledQuestionText>{response.text}</StyledQuestionText>
+                    {response.description !== null ? <StyledQuestionDescription dangerouslySetInnerHTML={{ __html: response.description }} /> : null}
                 </CardBody>
                 <CardBody>
                     {isEvaluationLoading ?

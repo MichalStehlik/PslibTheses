@@ -20,6 +20,7 @@ flex-grow: 1;
 border: 1px solid #cccccc;
 margin: 5px;
 box-sizing: border-box;
+max-width: 100%;
 `;
 export const CardHeader = styled.header`
 padding: 10px;

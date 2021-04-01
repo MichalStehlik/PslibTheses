@@ -51,6 +51,8 @@ export const mainTheme = {
   colors: {
     menuBackground: "#00A956",
     menuForeground: "white",
+    selectedMenuBackground: "#eee",
+    selectedMenuForeground: "#333",
     desktopBackground: "#eee",
     desktopForeground: "#333",
     cardBackground: "#fff",
@@ -58,6 +60,8 @@ export const mainTheme = {
     logoBackground: "black",
     logoForeground: "white",
     logoAccent: "#00A956",
+    headerBackground: "white",
+    headerForeground: "black",
     successBackground: "#00A956",
     successForeground: "rgb(255, 255, 255)",
     darkSuccessBackground: "rgb(100,150,35)",

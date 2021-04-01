@@ -10,14 +10,10 @@ const NavigationLink = styled(NavLink)`
     text-decoration: none;
     position: relative;
     overflow: hidden;
-    color: white;
     &>* {
         z-index: 2;
     }
-    & svg {
-        fill: ${props => props.theme.colors.menuForeground};
-        stroke: ${props => props.theme.colors.menuForeground};
-    }
+
     &:before {
         content: "";
         width: 100%;
@@ -34,14 +30,6 @@ const NavigationLink = styled(NavLink)`
     }
     &:hover:before {
         top: 0;
-    }
-    &:hover svg {
-        fill: ${props => props.theme.colors.menuForeground};
-        stroke: ${props => props.theme.colors.menuForeground};
-    }
-    &.active > svg {
-        fill: ${props => props.theme.colors.desktopForeground};
-        stroke: ${props => props.theme.colors.desktopForeground};
     }
 `;
 

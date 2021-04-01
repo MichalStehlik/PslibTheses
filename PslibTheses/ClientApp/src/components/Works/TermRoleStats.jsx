@@ -7,6 +7,7 @@ import styled from 'styled-components';
 const StyledTermRoleStatsContainer = styled.div`
     display: flex;
     flex-direction: column;
+    cursor: default;
 `;
 const StyledTermRoleStatsQuestionsContainer = styled.div`
 font-size: 12pt;

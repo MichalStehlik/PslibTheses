@@ -5,7 +5,7 @@ import {useAppContext} from "../providers/ApplicationProvider";
 const StyledTitlePanel = styled.p`
 padding: 3px 10px;
 overflow: hidden;
-text-overflow: elipse;
+text-overflow: elipsis;
 display: flex;
 align-items: center;
 margin: 0;
