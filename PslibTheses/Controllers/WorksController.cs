@@ -1666,8 +1666,13 @@ namespace PslibTheses.Controllers
                 return Unauthorized("only author or privileged user can list answers for questions of this work");
             }
             var workEvaluation = _context.WorkEvaluations
+                .Include(we => we.SetAnswer)
                 .Where(we => we.SetQuestionId == questionId && we.WorkId == id)
                 .SingleOrDefault();
+            if (workEvaluation == null)
+            {
+                return NotFound("evaluation does not exist (yet)");
+            }
             return Ok(workEvaluation);
         }
 
@@ -1795,11 +1800,27 @@ namespace PslibTheses.Controllers
             {
                 return NotFound("work not found");
             }
-            var goals = _context.WorkNotes
+            var notes = _context.WorkNotes
+                .Include(wn => wn.CreatedBy)
                 .Where(wn => wn.Work == work)
                 .OrderBy(wn => wn.Created)
                 .AsNoTracking();
-            return Ok(goals);
+            return Ok(notes);
+        }
+
+        [Authorize]
+        [HttpGet("{workId}/notes/{id}")]
+        public async Task<ActionResult<WorkRoleTermStatsVM>> GetWorkNote(int workId, int id)
+        {
+            var work = await _context.Works.Where(w => w.Id == workId).FirstOrDefaultAsync();
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var note = _context.WorkNotes
+                .Where(wn => wn.Id == id)
+                .SingleOrDefaultAsync();
+            return Ok(note);
         }
 
         // print version of application

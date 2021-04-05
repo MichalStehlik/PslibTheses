@@ -22,7 +22,6 @@ namespace PslibTheses.Model
         public SetQuestion SetQuestion { get; set; }
         [Required]
         public int SetAnswerId { get; set; }
-        [JsonIgnore]
         public SetAnswer SetAnswer { get; set; }
         [NotMapped]
         public int Points { get { if (SetQuestion != null && SetAnswer != null) return SetQuestion.Points * SetAnswer.Rating / 100; else return 0; } }

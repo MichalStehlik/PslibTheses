@@ -292,8 +292,7 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                                                         :
                                                         null
                                                     }
-                                                {
-                                                 }
+                                                    <Button size="8pt" onClick={e => { history.push("/works/" + workData.id + "/overview/" + role.id) }} >Přehled role</Button>
                                                  </ButtonBlock>
                                             </DataCell>
                                         )) : null}
@@ -304,6 +303,14 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                         }
                     </TableFooter>
                 </Table>
+                {(profile) && (profile[ADMIN_ROLE] === "1" || profile[MANAGER_ROLE] === "1")
+                    ?
+                    <CardBody>
+                        <ButtonBlock>
+                            <Button size="8pt" onClick={e => { history.push("/works/" + workData.id + "/overview") }} >Přehled hodnocení</Button>
+                        </ButtonBlock>
+                    </CardBody>
+                    : null}
             </TableWrapper>
             {
                 (profile) && (

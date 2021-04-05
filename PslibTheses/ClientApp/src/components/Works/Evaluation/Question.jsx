@@ -173,7 +173,9 @@ const Question = ({ work, questionId, editable }) => {
             })
             .catch(error => {
                 if (error.response) {
-                    setEvaluationError({ status: error.response.status, text: error.response.statusText });
+                    if (error.response.status !== 404) {
+                        setEvaluationError({ status: error.response.status, text: error.response.statusText });
+                    }                  
                 }
                 else {
                     setEvaluationError({ status: 0, text: "Neznámá chyba" });
