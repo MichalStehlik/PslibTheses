@@ -10,6 +10,8 @@ namespace PslibTheses.ViewModels
         public int? TotalQuestions { get; set; }
         public int? FilledQuestions { get; set; }
         public int? TotalPoints { get; set; }
+        public int? FilledPoints { get; set; }
         public int? GainedPoints { get; set; }
+        public int? CriticalAnswers { get; set; }
     }
 }

@@ -24,7 +24,7 @@ const TermRoleStats = ({ termId, roleId, workId }) => {
     useEffect(() => {
         setIsLoading(true);
         setError(false);
-        axios.get(process.env.REACT_APP_API_URL + "/works/" + workId + "/stats/" + roleId + "/" + termId, {
+        axios.get(process.env.REACT_APP_API_URL + "/works/" + workId + "/statsForRoleTerm/" + roleId + "/" + termId, {
             headers: {
                 Authorization: "Bearer " + accessToken,
                 "Content-Type": "application/json"

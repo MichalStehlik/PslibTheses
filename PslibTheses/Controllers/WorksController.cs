@@ -1526,7 +1526,7 @@ namespace PslibTheses.Controllers
 
         // statistics for role in term
         [Authorize]
-        [HttpGet("{id}/stats/{setRoleId}/{setTermId}")]
+        [HttpGet("{id}/statsForRoleTerm/{setRoleId}/{setTermId}")]
         public async Task<ActionResult<WorkRoleTermStatsVM>> GetWorkRoleTermStats(int id, int setRoleId, int setTermId)
         {
             var userId = Guid.Parse(User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value);
@@ -1549,10 +1549,14 @@ namespace PslibTheses.Controllers
                 .Where(wa => wa.WorkId == id && wa.SetQuestion.SetRoleId == setRoleId && wa.SetQuestion.SetTermId == setTermId).ToListAsync();
             int answeredQuestions = 0;
             int answeredPoints = 0;
+            int maxPoints = 0;
+            int criticals = 0;
             foreach (var wa in workAnswers)
             {
                 answeredQuestions++;
+                maxPoints += wa.SetQuestion.Points;
                 answeredPoints += wa.Points;
+                if (wa.SetAnswer.Critical) criticals++;
             }
             var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
             if (isEvaluator.Succeeded)
@@ -1562,7 +1566,65 @@ namespace PslibTheses.Controllers
                     TotalQuestions = setQuestionsStats.Questions,
                     TotalPoints = setQuestionsStats.Points,
                     FilledQuestions = answeredQuestions,
-                    GainedPoints = answeredPoints
+                    GainedPoints = answeredPoints,
+                    FilledPoints = maxPoints,
+                    CriticalAnswers = criticals
+                });
+            }
+            else
+            {
+                return Ok(new WorkRoleTermStatsVM
+                {
+                    TotalQuestions = setQuestionsStats.Questions
+                });
+            }
+        }
+
+        // statistics for role
+        [Authorize]
+        [HttpGet("{id}/statsForRole/{setRoleId}")]
+        public async Task<ActionResult<WorkRoleTermStatsVM>> GetWorkRoleStats(int id, int setRoleId)
+        {
+            var userId = Guid.Parse(User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value);
+            var work = await _context.Works.FindAsync(id);
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var set = await _context.Sets.FindAsync(work.SetId);
+            if (set == null)
+            {
+                return NotFound("set not found");
+            }
+            var setQuestionsStats = await _context.SetQuestions.Where(sq => sq.SetRoleId == setRoleId)
+                .GroupBy(sq => 1)
+                .Select(sq => new QuestionsPointsStats { Questions = sq.Count(), Points = sq.Sum(s => s.Points) }).SingleOrDefaultAsync();
+            var workAnswers = await _context.WorkEvaluations
+                .Include(wa => wa.SetQuestion)
+                .Include(wa => wa.SetAnswer)
+                .Where(wa => wa.WorkId == id && wa.SetQuestion.SetRoleId == setRoleId).ToListAsync();
+            int answeredQuestions = 0;
+            int answeredPoints = 0;
+            int maxPoints = 0;
+            int criticals = 0;
+            foreach (var wa in workAnswers)
+            {
+                answeredQuestions++;
+                maxPoints += wa.SetQuestion.Points;
+                answeredPoints += wa.Points;
+                if (wa.SetAnswer.Critical) criticals++;
+            }
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (isEvaluator.Succeeded)
+            {
+                return Ok(new WorkRoleTermStatsVM
+                {
+                    TotalQuestions = setQuestionsStats.Questions,
+                    TotalPoints = setQuestionsStats.Points,
+                    FilledQuestions = answeredQuestions,
+                    GainedPoints = answeredPoints,
+                    FilledPoints = maxPoints,
+                    CriticalAnswers = criticals
                 });
             }
             else

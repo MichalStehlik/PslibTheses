@@ -28,6 +28,10 @@ const Overview = props => {
     const [termsData, setTermsData] = useState(null);
     const [isTermsLoading, setIsTermsLoading] = useState(false);
     const [termsError, setTermsError] = useState(false);
+    const [statsData, setStatsData] = useState(null);
+    const [isStatsLoading, setIsStatsLoading] = useState(false);
+    const [statsError, setStatsError] = useState(false);
+
 
     const fetchWorkData = useCallback(id => {
         setIsWorkLoading(true);
@@ -95,16 +99,42 @@ const Overview = props => {
             });
     }, [accessToken, workData]);
 
+    const fetchStatsData = useCallback((id, roleId) => {
+        setIsStatsLoading(true);
+        setStatsError(false);
+        axios.get(process.env.REACT_APP_API_URL + "/works/" + id + "/statsForRole/" + roleId, { headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" } })
+            .then(response => {
+                setStatsData(response.data);
+            })
+            .catch(err => {
+                if (err.response) {
+                    setStatsError({ text: err.response.statusText, status: err.response.status });
+                }
+                else {
+                    setStatsError({ text: "Neznámá chyba", status: "" });
+                }
+                setStatsData(null);
+            })
+            .then(() => {
+                setIsStatsLoading(false);
+            });
+    }, [accessToken]);
+
     useEffect(() => {
         fetchWorkData(id);
         dispatch({ type: SET_TITLE, payload: "Otázky pro hodnocení práce" });
-    }, [id, role, dispatch, fetchWorkData]);
+    }, [id, role, dispatch, fetchWorkData, fetchStatsData]);
     useEffect(() => {
         if (workData) {
-            fetchRoleData(role);
             fetchTermsData(id);
+            fetchRoleData(role);
         }
     }, [role, workData, fetchRoleData, fetchTermsData, id]);
+    useEffect(() => {
+        if (roleData) {
+            fetchStatsData(id,roleData.setRoleId);
+        }
+    }, [roleData, fetchStatsData, id]);
 
     return (
         <>
@@ -178,6 +208,44 @@ const Overview = props => {
                             :
                             <Loader size="2em" />
                 }
+                <Card>
+                    <CardHeader>
+                        <Heading>Shrnutí</Heading>
+                    </CardHeader>
+                    <CardBody>
+                        {(isStatsLoading)
+                            ?
+                            <Loader size="2em" />
+                            :
+                            (statsError)
+                                ?
+                                <>
+                                    {statsError ? <Alert variant="error" text="Při získávání statistik došlo k chybě." /> : ""}
+                                </>
+                                :
+                                (statsData)
+                                    ?
+                                    <CardTypeValueList>
+                                        <CardTypeValueItem type="Otázky (zodpovězené / celkem)" value={statsData.filledQuestions + "/" + statsData.totalQuestions} />
+                                        <CardTypeValueItem type="Body (získané / z zodpovězených / ze všech)" value={statsData.gainedPoints + "/" + statsData.filledPoints + "/" + statsData.totalPoints} />
+                                        <CardTypeValueItem type="Kritické odpovědi" value={statsData.criticalAnswers} />
+                                        <CardTypeValueItem type="Procenta" value={Math.round(statsData.gainedPoints/statsData.filledPoints*100)+"%"} />
+                                    </CardTypeValueList>
+                                    :
+                                    <Loader size="2em" />
+                        }
+                    </CardBody>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <Heading>Posudek</Heading>
+                    </CardHeader>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <Heading>Otázky pro studenta</Heading>
+                    </CardHeader>
+                </Card>
             </StyledQuestionsLayout>
         </>
     );
