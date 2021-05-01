@@ -14,6 +14,7 @@ font-size: 12pt;
 `;
 const StyledTermRoleStatsPointsContainer = styled.div`
 font-size: 8pt;
+&.critical {color: red};
 `;
 
 const TermRoleStats = ({ termId, roleId, workId }) => {
@@ -54,10 +55,10 @@ const TermRoleStats = ({ termId, roleId, workId }) => {
                 <StyledTermRoleStatsQuestionsContainer>
                     <small>Otázky:</small> {response.filledQuestions !== null ? (Number(response.filledQuestions) + "/") : ""}{Number(response.totalQuestions)}
                 </StyledTermRoleStatsQuestionsContainer>
-                <StyledTermRoleStatsPointsContainer>
+                <StyledTermRoleStatsPointsContainer className={(Number(response.criticalAnswers) > 0 ? "critical" : "")}>
                 {response.totalPoints !== null
                 ?
-                "Body: " + Number(response.gainedPoints) + "/" + Number(response.totalPoints)
+                        "Body: " + Number(response.gainedPoints) + "/" + Number(response.totalPoints)
                 :    
                 ""
                 }

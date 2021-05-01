@@ -1575,7 +1575,12 @@ namespace PslibTheses.Controllers
             {
                 return Ok(new WorkRoleTermStatsVM
                 {
-                    TotalQuestions = setQuestionsStats.Questions
+                    TotalQuestions = setQuestionsStats.Questions,
+                    TotalPoints = setQuestionsStats.Points,
+                    FilledQuestions = answeredQuestions,
+                    GainedPoints = answeredPoints,
+                    FilledPoints = maxPoints,
+                    CriticalAnswers = criticals
                 });
             }
         }
@@ -1614,6 +1619,9 @@ namespace PslibTheses.Controllers
                 answeredPoints += wa.Points;
                 if (wa.SetAnswer.Critical) criticals++;
             }
+            double rating = maxPoints > 0 ? answeredPoints / maxPoints : 0;
+            double effectiveRating = criticals > 0 ? 0 : rating;
+            var setRatingValue = await _context.ScaleValues.Where(sv => sv.ScaleId == set.ScaleId && sv.Rate > effectiveRating).OrderBy(sv => sv.Rate).FirstOrDefaultAsync();
             var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
             if (isEvaluator.Succeeded)
             {
@@ -1624,7 +1632,8 @@ namespace PslibTheses.Controllers
                     FilledQuestions = answeredQuestions,
                     GainedPoints = answeredPoints,
                     FilledPoints = maxPoints,
-                    CriticalAnswers = criticals
+                    CriticalAnswers = criticals,
+                    CalculatedMark = setRatingValue != null ? setRatingValue.Name : "?"
                 });
             }
             else

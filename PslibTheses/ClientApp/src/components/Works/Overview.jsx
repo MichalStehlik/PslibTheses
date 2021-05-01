@@ -210,7 +210,7 @@ const Overview = props => {
                 }
                 <Card>
                     <CardHeader>
-                        <Heading>Shrnutí</Heading>
+                        <Heading>Shrnutí celé práce</Heading>
                     </CardHeader>
                     <CardBody>
                         {(isStatsLoading)
@@ -229,7 +229,8 @@ const Overview = props => {
                                         <CardTypeValueItem type="Otázky (zodpovězené / celkem)" value={statsData.filledQuestions + "/" + statsData.totalQuestions} />
                                         <CardTypeValueItem type="Body (získané / z zodpovězených / ze všech)" value={statsData.gainedPoints + "/" + statsData.filledPoints + "/" + statsData.totalPoints} />
                                         <CardTypeValueItem type="Kritické odpovědi" value={statsData.criticalAnswers} />
-                                        <CardTypeValueItem type="Procenta" value={Math.round(statsData.gainedPoints/statsData.filledPoints*100)+"%"} />
+                                        <CardTypeValueItem type="Procenta" value={Math.round(statsData.gainedPoints / statsData.filledPoints * 100) + "%"} />
+                                        <CardTypeValueItem type="Vypočítaná známka" value={statsData.calculatedMark} />
                                     </CardTypeValueList>
                                     :
                                     <Loader size="2em" />
