@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from "react-router-dom";
 import { useAppContext, SET_TITLE } from "../../providers/ApplicationProvider";
 import { ActionLink, Alert, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Subheading, Loader } from "../general";
@@ -31,6 +31,9 @@ const Overview = props => {
     const [statsData, setStatsData] = useState(null);
     const [isStatsLoading, setIsStatsLoading] = useState(false);
     const [statsError, setStatsError] = useState(false);
+    const [questionsData, setQuestionsData] = useState(null);
+    const [isQuestionsLoading, setIsQuestionsLoading] = useState(false);
+    const [questionsError, setQuestionsError] = useState(false);
 
 
     const fetchWorkData = useCallback(id => {
@@ -120,6 +123,27 @@ const Overview = props => {
             });
     }, [accessToken]);
 
+    const fetchQuestionsData = useCallback((id, roleId) => {
+        setIsQuestionsLoading(true);
+        setQuestionsError(false);
+        axios.get(process.env.REACT_APP_API_URL + "/works/" + id + "/roles/" + roleId + "/reviewQuestions", { headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" } })
+            .then(response => {
+                setQuestionsData(response.data);
+            })
+            .catch(err => {
+                if (err.response) {
+                    setQuestionsError({ text: err.response.statusText, status: err.response.status });
+                }
+                else {
+                    setQuestionsError({ text: "Neznámá chyba", status: "" });
+                }
+                setQuestionsData(null);
+            })
+            .then(() => {
+                setIsQuestionsLoading(false);
+            });
+    }, [accessToken]);
+
     useEffect(() => {
         fetchWorkData(id);
         dispatch({ type: SET_TITLE, payload: "Otázky pro hodnocení práce" });
@@ -132,9 +156,10 @@ const Overview = props => {
     }, [role, workData, fetchRoleData, fetchTermsData, id]);
     useEffect(() => {
         if (roleData) {
-            fetchStatsData(id,roleData.setRoleId);
+            fetchStatsData(id, roleData.setRoleId);
+            fetchQuestionsData(id, roleData.id);
         }
-    }, [roleData, fetchStatsData, id]);
+    }, [roleData, fetchStatsData, fetchQuestionsData, id]);
 
     return (
         <>
@@ -241,10 +266,47 @@ const Overview = props => {
                     <CardHeader>
                         <Heading>Posudek</Heading>
                     </CardHeader>
+                    <CardBody>
+                        {
+                            roleData && roleData.review
+                                ?
+                                < div dangerouslySetInnerHTML={roleData.review} />
+                                :
+                                <p><i>Text posudku je prázdný.</i></p>
+                        }
+                        <CardTypeValueList>
+                            <CardTypeValueItem type="Známka" value={roleData && roleData.mark ? roleData.mark : "?"} />
+                        </CardTypeValueList>
+                    </CardBody>
                 </Card>
                 <Card>
                     <CardHeader>
                         <Heading>Otázky pro studenta</Heading>
+                        <CardBody>
+                            {(isQuestionsLoading)
+                                ?
+                                <Loader size="2em" />
+                                :
+                                (questionsError)
+                                    ?
+                                    <>
+                                        {questionsError ? <Alert variant="error" text="Při získávání otázek došlo k chybě." /> : ""}
+                                    </>
+                                    :
+                                    (questionsData)
+                                        ?
+                                        (Array.isArray(questionsData) && questionsData.length > 0)
+                                            ?
+                                            <ol>
+                                                {questionsData.map((item, index) => (<li key={index}>{ item.text }</li>))}
+                                            </ol>
+                                            :
+                                            <p><i>Źádné otázky nejsou.</i></p>
+                                            
+                                        :
+                                        <Loader size="2em" />
+                            }
+                        </CardBody>
                     </CardHeader>
                 </Card>
             </StyledQuestionsLayout>

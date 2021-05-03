@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace PslibTheses.Model
 {
+    [Table("WorkNotes")]
     public class WorkNote
     {
         [Key]

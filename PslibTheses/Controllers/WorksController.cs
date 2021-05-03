@@ -1375,7 +1375,12 @@ namespace PslibTheses.Controllers
             {
                 return NotFound("work not found");
             }
-            var role = _context.WorkRoles.Include(wr => wr.SetRole).Include(wr => wr.WorkRoleUsers).Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            var role = _context.WorkRoles
+                //.Include(wr => wr.SetRole)
+                //.Include(wr => wr.WorkRoleUsers)
+                .Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            _context.Entry(role).Reference(wr => wr.SetRole).Load();
+            _context.Entry(role).Collection(wr => wr.WorkRoleUsers).Load();
             if (role == null)
             {
                 return NotFound("role not found");
@@ -1524,6 +1529,110 @@ namespace PslibTheses.Controllers
             return Ok(workRole);
         }
 
+        // review for role
+        [Authorize]
+        [HttpGet("{id}/roles/{workRoleId}/review")]
+        public async Task<ActionResult<WorkRoleReviewVM>> GetWorkRoleReview(int id, int workRoleId)
+        {
+            var work = await _context.Works.FindAsync(id);
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var role = _context.WorkRoles
+                .Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            if (role == null)
+            {
+                return NotFound("role not found");
+            }
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!isEvaluator.Succeeded && !User.HasClaim(ClaimTypes.NameIdentifier, work.AuthorId.ToString()) && work.State < WorkState.Evaluated)
+            {
+                return Ok(new WorkRoleReviewVM { 
+                    WorkId = id,
+                    SetRoleId = role.SetRoleId,
+                    WorkRoleId = workRoleId,
+                    Mark = null,
+                    MarkValue = null,
+                    Finalized = role.Finalized,
+                    Review = null,
+                    Updated = role.Updated
+                });
+            }
+            else
+            {
+                return Ok(new WorkRoleReviewVM
+                {
+                    WorkId = id,
+                    SetRoleId = role.SetRoleId,
+                    WorkRoleId = workRoleId,
+                    Mark = role.Mark,
+                    MarkValue = role.MarkValue,
+                    Finalized = role.Finalized,
+                    Review = role.Review,
+                    Updated = role.Updated
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("{id}/roles/{workRoleId}/review")]
+        public async Task<ActionResult> PutWorkRoleReview(int id, int workRoleId, [FromBody] WorkRoleReviewIM input)
+        {
+            var work = await _context.Works.FindAsync(id);
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var role = _context.WorkRoles
+                .Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            if (role == null)
+            {
+                return NotFound("role not found");
+            }
+            _context.Entry(role).Reference(wr => wr.SetRole).Load();
+            _context.Entry(role).Collection(wr => wr.WorkRoleUsers).Load();
+            ICollection<string> evaluators = role.WorkRoleUsers.Select(wru => wru.UserId.ToString()).ToArray();
+            var userId = User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
+            var isAdmin = await _authorizationService.AuthorizeAsync(User, "Administrator");
+            if (!evaluators.Contains(userId) && !isAdmin.Succeeded)
+            {
+                return Unauthorized("user is not administrator nor evaluator in this role");
+            }
+
+
+
+            return Ok();
+        }
+
+        // review questions
+        [Authorize]
+        [HttpGet("{id}/roles/{workRoleId}/reviewQuestions")]
+        public async Task<ActionResult<List<WorkRoleQuestion>>> GetWorkRoleReviewQuestions(int id, int workRoleId)
+        {
+            var work = await _context.Works.FindAsync(id);
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var role = _context.WorkRoles
+                .Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            if (role == null)
+            {
+                return NotFound("role not found");
+            }
+            var questions = await _context.WorkRoleQuestions.Where(wrq => wrq.WorkRoleId == workRoleId).ToListAsync();
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!isEvaluator.Succeeded && !User.HasClaim(ClaimTypes.NameIdentifier, work.AuthorId.ToString()) && work.State < WorkState.Evaluated)
+            {
+                return Ok();
+            }
+            else
+            {
+                return Ok(questions);
+            }
+        }
+
         // statistics for role in term
         [Authorize]
         [HttpGet("{id}/statsForRoleTerm/{setRoleId}/{setTermId}")]
@@ -1619,9 +1728,12 @@ namespace PslibTheses.Controllers
                 answeredPoints += wa.Points;
                 if (wa.SetAnswer.Critical) criticals++;
             }
-            double rating = maxPoints > 0 ? answeredPoints / maxPoints : 0;
+            double rating = maxPoints > 0 ? (double)answeredPoints / maxPoints : 0;
             double effectiveRating = criticals > 0 ? 0 : rating;
-            var setRatingValue = await _context.ScaleValues.Where(sv => sv.ScaleId == set.ScaleId && sv.Rate > effectiveRating).OrderBy(sv => sv.Rate).FirstOrDefaultAsync();
+            var setRatingValue = await _context.ScaleValues
+                .Where(sv => (sv.ScaleId == set.ScaleId) && (sv.Rate >= effectiveRating))
+                .OrderBy(sv => sv.Rate)
+                .FirstOrDefaultAsync();
             var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
             if (isEvaluator.Succeeded)
             {
