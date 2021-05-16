@@ -275,7 +275,7 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                                             <DataCell key={roleIndex}>
                                                 {role.finalized
                                                     ?
-                                                    role.mark
+                                                    role.markText
                                                     :
                                                     "?"
                                                 }

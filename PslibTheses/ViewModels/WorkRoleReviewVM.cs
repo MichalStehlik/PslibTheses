@@ -10,7 +10,7 @@ namespace PslibTheses.ViewModels
         public int WorkId { get; set; }
         public int WorkRoleId { get; set; }
         public int SetRoleId { get; set; }
-        public string Mark { get; set; }
+        public string MarkText { get; set; }
         public double? MarkValue { get; set; }
         public bool Finalized { get; set; } = false;
         public string Review { get; set; }

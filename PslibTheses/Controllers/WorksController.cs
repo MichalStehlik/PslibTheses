@@ -1552,7 +1552,7 @@ namespace PslibTheses.Controllers
                     WorkId = id,
                     SetRoleId = role.SetRoleId,
                     WorkRoleId = workRoleId,
-                    Mark = null,
+                    MarkText = null,
                     MarkValue = null,
                     Finalized = role.Finalized,
                     Review = null,
@@ -1566,7 +1566,7 @@ namespace PslibTheses.Controllers
                     WorkId = id,
                     SetRoleId = role.SetRoleId,
                     WorkRoleId = workRoleId,
-                    Mark = role.Mark,
+                    MarkText = role.MarkText,
                     MarkValue = role.MarkValue,
                     Finalized = role.Finalized,
                     Review = role.Review,
@@ -1579,6 +1579,14 @@ namespace PslibTheses.Controllers
         [HttpPut("{id}/roles/{workRoleId}/review")]
         public async Task<ActionResult> PutWorkRoleReview(int id, int workRoleId, [FromBody] WorkRoleReviewIM input)
         {
+            if (id != input.WorkId)
+            {
+                return BadRequest("inconsistent work data");
+            }
+            if (workRoleId != input.WorkRoleId)
+            {
+                return BadRequest("inconsistent workRole data");
+            }
             var work = await _context.Works.FindAsync(id);
             if (work == null)
             {
@@ -1599,10 +1607,13 @@ namespace PslibTheses.Controllers
             {
                 return Unauthorized("user is not administrator nor evaluator in this role");
             }
-
-
-
-            return Ok();
+            if (work.State != WorkState.Delivered)
+            {
+                return BadRequest("work is not in state suitable for writing reviews");
+            }
+            role.Review = input.Review;
+            await _context.SaveChangesAsync();
+            return Ok(role);
         }
 
         // review questions
@@ -1660,13 +1671,21 @@ namespace PslibTheses.Controllers
             int answeredPoints = 0;
             int maxPoints = 0;
             int criticals = 0;
+            int criticalsInTerm = 0;
             foreach (var wa in workAnswers)
             {
                 answeredQuestions++;
                 maxPoints += wa.SetQuestion.Points;
                 answeredPoints += wa.Points;
                 if (wa.SetAnswer.Critical) criticals++;
+                if (wa.SetAnswer.CriticalInTerm) criticalsInTerm++;
             }
+            double rating = maxPoints > 0 ? (double)answeredPoints / maxPoints : 0;
+            double effectiveRating = criticals > 0 ? 0 : rating;
+            var setRatingValue = await _context.ScaleValues
+                .Where(sv => (sv.ScaleId == set.ScaleId) && (sv.Rate >= effectiveRating))
+                .OrderBy(sv => sv.Rate)
+                .FirstOrDefaultAsync();
             var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
             if (isEvaluator.Succeeded)
             {
@@ -1677,7 +1696,9 @@ namespace PslibTheses.Controllers
                     FilledQuestions = answeredQuestions,
                     GainedPoints = answeredPoints,
                     FilledPoints = maxPoints,
-                    CriticalAnswers = criticals
+                    CriticalAnswers = criticals,
+                    CriticalInTerm = criticalsInTerm,
+                    CalculatedMark = (setRatingValue != null && answeredQuestions > 0) ? setRatingValue.Name : "?"
                 });
             }
             else
@@ -1689,7 +1710,8 @@ namespace PslibTheses.Controllers
                     FilledQuestions = answeredQuestions,
                     GainedPoints = answeredPoints,
                     FilledPoints = maxPoints,
-                    CriticalAnswers = criticals
+                    CriticalAnswers = criticals,
+                    CriticalInTerm = criticalsInTerm
                 });
             }
         }
@@ -1721,12 +1743,14 @@ namespace PslibTheses.Controllers
             int answeredPoints = 0;
             int maxPoints = 0;
             int criticals = 0;
+            int criticalsInTerm = 0;
             foreach (var wa in workAnswers)
             {
                 answeredQuestions++;
                 maxPoints += wa.SetQuestion.Points;
                 answeredPoints += wa.Points;
                 if (wa.SetAnswer.Critical) criticals++;
+                if (wa.SetAnswer.CriticalInTerm) criticalsInTerm++;
             }
             double rating = maxPoints > 0 ? (double)answeredPoints / maxPoints : 0;
             double effectiveRating = criticals > 0 ? 0 : rating;
@@ -1745,7 +1769,8 @@ namespace PslibTheses.Controllers
                     GainedPoints = answeredPoints,
                     FilledPoints = maxPoints,
                     CriticalAnswers = criticals,
-                    CalculatedMark = setRatingValue != null ? setRatingValue.Name : "?"
+                    CriticalInTerm = criticalsInTerm,
+                    CalculatedMark = (setRatingValue != null && answeredQuestions > 0) ? setRatingValue.Name : "?"
                 });
             }
             else

@@ -30,7 +30,8 @@ export const CreateAnswer = props => {
                         text: "",
                         description: "",
                         rating: 0,
-                        critical: false
+                        critical: false,
+                        criticalInTerm: false
                     }}
                     validate={values=>{
                         let errors = {};
@@ -46,7 +47,8 @@ export const CreateAnswer = props => {
                             Text: values.text,
                             Description: values.description,
                             Rating: Number(values.rating),
-                            Critical: values.critical
+                            Critical: values.critical,
+                            CriticalInTerm: values.criticalInTerm
                         }, {
                             headers: {
                                 Authorization: "Bearer " + accessToken,
@@ -101,7 +103,8 @@ export const CreateAnswer = props => {
                         <ErrorMessage name="description">{msg => <FormError>{msg}</FormError>}</ErrorMessage>
                     </FormGroup>
                     <FormTextInput name="rating" label="Podíl na hodnocení v procentech" type="number" placeholder="100" min="0" max="100" />
-                    <FormCheckbox name="critical" label="Kritická odpověď" />
+                    <FormCheckbox name="critical" label="Kritická odpověď v rámci celé práce" />
+                    <FormCheckbox name="criticalInTerm" label="Kritická odpověď v rámci termínu" />
                     <div>
                         <Button type="submit" variant="primary" disabled={!((dirty && isValid) || isSubmitting)}>{!isSubmitting ? "Uložit" : "Pracuji"}</Button>
                         <Button onClick={()=>{setExpand(false)}}>Zpět</Button>

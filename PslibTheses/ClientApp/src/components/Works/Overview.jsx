@@ -1,13 +1,14 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from "react-router-dom";
 import { useAppContext, SET_TITLE } from "../../providers/ApplicationProvider";
-import { ActionLink, Alert, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Subheading, Loader } from "../general";
+import { ActionLink, Alert, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Subheading, Loader, CardFooter } from "../general";
 import LoadedUser from "../common/LoadedUser";
 import DateTime from "../common/DateTime";
 import styled from 'styled-components';
 import axios from "axios";
 import requireEvaluator from "../Auth/requireEvaluator";
 import OverviewQuestions from "./OverviewQuestions";
+import OverviewRoleStats from "./OverviewRoleStats";
 
 const StyledQuestionsLayout = styled.span`
     display: flex;
@@ -28,9 +29,6 @@ const Overview = props => {
     const [termsData, setTermsData] = useState(null);
     const [isTermsLoading, setIsTermsLoading] = useState(false);
     const [termsError, setTermsError] = useState(false);
-    const [statsData, setStatsData] = useState(null);
-    const [isStatsLoading, setIsStatsLoading] = useState(false);
-    const [statsError, setStatsError] = useState(false);
     const [questionsData, setQuestionsData] = useState(null);
     const [isQuestionsLoading, setIsQuestionsLoading] = useState(false);
     const [questionsError, setQuestionsError] = useState(false);
@@ -102,27 +100,6 @@ const Overview = props => {
             });
     }, [accessToken, workData]);
 
-    const fetchStatsData = useCallback((id, roleId) => {
-        setIsStatsLoading(true);
-        setStatsError(false);
-        axios.get(process.env.REACT_APP_API_URL + "/works/" + id + "/statsForRole/" + roleId, { headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" } })
-            .then(response => {
-                setStatsData(response.data);
-            })
-            .catch(err => {
-                if (err.response) {
-                    setStatsError({ text: err.response.statusText, status: err.response.status });
-                }
-                else {
-                    setStatsError({ text: "Neznámá chyba", status: "" });
-                }
-                setStatsData(null);
-            })
-            .then(() => {
-                setIsStatsLoading(false);
-            });
-    }, [accessToken]);
-
     const fetchQuestionsData = useCallback((id, roleId) => {
         setIsQuestionsLoading(true);
         setQuestionsError(false);
@@ -147,7 +124,7 @@ const Overview = props => {
     useEffect(() => {
         fetchWorkData(id);
         dispatch({ type: SET_TITLE, payload: "Otázky pro hodnocení práce" });
-    }, [id, role, dispatch, fetchWorkData, fetchStatsData]);
+    }, [id, role, dispatch, fetchWorkData]);
     useEffect(() => {
         if (workData) {
             fetchTermsData(id);
@@ -156,10 +133,9 @@ const Overview = props => {
     }, [role, workData, fetchRoleData, fetchTermsData, id]);
     useEffect(() => {
         if (roleData) {
-            fetchStatsData(id, roleData.setRoleId);
             fetchQuestionsData(id, roleData.id);
         }
-    }, [roleData, fetchStatsData, fetchQuestionsData, id]);
+    }, [roleData, fetchQuestionsData, id]);
 
     return (
         <>
@@ -238,28 +214,7 @@ const Overview = props => {
                         <Heading>Shrnutí celé práce</Heading>
                     </CardHeader>
                     <CardBody>
-                        {(isStatsLoading)
-                            ?
-                            <Loader size="2em" />
-                            :
-                            (statsError)
-                                ?
-                                <>
-                                    {statsError ? <Alert variant="error" text="Při získávání statistik došlo k chybě." /> : ""}
-                                </>
-                                :
-                                (statsData)
-                                    ?
-                                    <CardTypeValueList>
-                                        <CardTypeValueItem type="Otázky (zodpovězené / celkem)" value={statsData.filledQuestions + "/" + statsData.totalQuestions} />
-                                        <CardTypeValueItem type="Body (získané / z zodpovězených / ze všech)" value={statsData.gainedPoints + "/" + statsData.filledPoints + "/" + statsData.totalPoints} />
-                                        <CardTypeValueItem type="Kritické odpovědi" value={statsData.criticalAnswers} />
-                                        <CardTypeValueItem type="Procenta" value={Math.round(statsData.gainedPoints / statsData.filledPoints * 100) + "%"} />
-                                        <CardTypeValueItem type="Vypočítaná známka" value={statsData.calculatedMark} />
-                                    </CardTypeValueList>
-                                    :
-                                    <Loader size="2em" />
-                        }
+                        <OverviewRoleStats work={ workData } role={ roleData } />
                     </CardBody>
                 </Card>
                 <Card>

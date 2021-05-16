@@ -19,8 +19,9 @@ namespace PslibTheses.Model
         public int SetRoleId { get; set; }
         [ForeignKey("SetRoleId")]
         public SetRole SetRole { get; set; }
-        public string Mark { get; set; } // string representation of mark, not referenced using foreign key by design
+        public string Mark { get; set; } // legacy
         public double? MarkValue { get; set; } // numeric representation of mark
+        public string MarkText { get; set; } // string representation of mark, not referenced using foreign key by design
         public bool Finalized { get; set; } = false;
         public string Review { get; set; }
         [Required]

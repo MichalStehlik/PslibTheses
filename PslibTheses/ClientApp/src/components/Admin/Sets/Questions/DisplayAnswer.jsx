@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
 import {DeleteMiniButton, EditMiniButton, Modal, Paragraph, Button} from "../../../general";
 import {useAppContext, ADD_MESSAGE} from "../../../../providers/ApplicationProvider";
-import {ReactComponent as WarningIcon} from "../../../../assets/icons/warning_triangle.svg";
+import { ReactComponent as WarningIcon } from "../../../../assets/icons/warning_triangle.svg";
+import { ReactComponent as ImportantWarningIcon } from "../../../../assets/icons/warning_hex.svg";
 import Axios from 'axios';
 import styled from 'styled-components';
 
@@ -61,8 +62,8 @@ const DisplayAnswer = ({value, setEditMode, globalEditing, setId, fetchData, cou
     return (
         <>
         <AnswerLayout onDoubleClick={e => {if (!globalEditing) setEditMode(true)}}>
-            <AnswerText>{value.text}</AnswerText>
-            <AnswerCoeficient critical={value.critical}>{value.critical ? <Sign><WarningIcon /></Sign> : ""} {value.rating}%</AnswerCoeficient>
+                <AnswerText>{value.text}</AnswerText>
+                <AnswerCoeficient critical={value.critical || value.criticalInTerm}>{value.criticalInTerm ? <Sign><WarningIcon /></Sign> : ""} {value.critical ? <Sign><ImportantWarningIcon /></Sign> : ""} {value.rating}%</AnswerCoeficient>
             {value.description 
             ?
             <AnswerDescription>

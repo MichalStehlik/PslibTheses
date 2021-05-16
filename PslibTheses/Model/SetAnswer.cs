@@ -17,7 +17,8 @@ namespace PslibTheses.Model
         public string Description { get; set; }
         [Required]
         public int Rating { get; set; }
-        public bool Critical { get; set; }
+        public bool Critical { get; set; } = false;
+        public bool CriticalInTerm { get; set; } = false;
         [ForeignKey("SetQuestionId")]
         [JsonIgnore]
         public SetQuestion Question { get; set; }

@@ -17,7 +17,8 @@ const EditAnswer = props => {
                 text: props.value.text,
                 description: props.value.description,
                 rating: Number(props.value.rating),
-                critical: props.value.critical
+                critical: props.value.critical,
+                criticalInTerm: props.value.criticalInTerm
             }}
             validate={values=>{
                 let errors = {};
@@ -34,7 +35,8 @@ const EditAnswer = props => {
                     Text: values.text,
                     Description: values.description,
                     Rating: Number(values.rating),
-                    Critical: values.critical
+                    Critical: values.critical,
+                    CriticalInTerm: values.criticalInTerm
                 }, {
                     headers: {
                         Authorization: "Bearer " + accessToken,
@@ -87,7 +89,8 @@ const EditAnswer = props => {
                 <ErrorMessage name="description">{msg => <FormError>{msg}</FormError>}</ErrorMessage>
             </FormGroup>
             <FormTextInput name="rating" label="Podíl na hodnocení v procentech" type="number" placeholder="100" min="0" max="100" />
-            <FormCheckbox name="critical" label="Kritická odpověď" />
+            <FormCheckbox name="critical" label="Kritická odpověď v rámci celé práce" />
+            <FormCheckbox name="criticalInTerm" label="Kritická odpověď v rámci termínu" />
             <div>
                 <Button type="submit" variant="primary" disabled={!((isValid) || isSubmitting)}>{!isSubmitting ? "Uložit" : "Pracuji"}</Button>
                 <Button onClick={()=>{props.setEditMode(false)}}>Zpět</Button>

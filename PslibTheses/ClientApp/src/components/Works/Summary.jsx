@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from "react-router-dom";
 import { useAppContext, SET_TITLE } from "../../providers/ApplicationProvider";
-import { ActionLink, Alert, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Loader, TableWrapper, Table, TableRow, TableHeader, TableBody, HeadCell, DataCell } from "../general";
+import { ActionLink, Alert, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Loader, TableWrapper, Table, TableRow, TableHeader, TableBody, HeadCell, DataCell, CardFooter, TableFooter } from "../general";
 import LoadedUser from "../common/LoadedUser";
 import DateTime from "../common/DateTime";
 import styled from 'styled-components';
@@ -9,6 +9,7 @@ import axios from "axios";
 import { ADMIN_ROLE, MANAGER_ROLE } from "../../configuration/constants";
 import requireManager from "../Auth/requireManager";
 import OverviewQuestions from "./OverviewQuestions";
+import OverviewRoleStats from "./OverviewRoleStats";
 
 const StyledUsersInRole = styled.nav`
 display: flex;
@@ -212,11 +213,11 @@ const Summary = props => {
                                         <Table width="100%">
                                             <TableHeader>
                                                 <TableRow>
-                                                    <HeadCell>Název role</HeadCell>
+                                                    <HeadCell colSpan="2">Název role</HeadCell>
                                                     {showRoles()}
                                                 </TableRow>
                                                 <TableRow>
-                                                    <HeadCell>Hodnotitel</HeadCell>
+                                                    <HeadCell colSpan="2">Hodnotitel</HeadCell>
                                                     {showAssignedRoles()}
                                                 </TableRow>
                                             </TableHeader>
@@ -226,7 +227,7 @@ const Summary = props => {
                                                         ?
                                                         termsResponse.map((term, termIndex) => (
                                                             <TableRow key={termIndex}>
-                                                                <HeadCell>{term.name}<br /><TermDate><DateTime date={term.date} showTime={false} /></TermDate></HeadCell>
+                                                                <HeadCell colSpan="2">{term.name}<br /><TermDate><DateTime date={term.date} showTime={false} /></TermDate></HeadCell>
                                                                 {rolesResponse.map((role, roleIndex) => (
                                                                     <DataCell key={roleIndex}>
                                                                         <OverviewQuestions work={workData} term={term} role={role} />
@@ -238,6 +239,57 @@ const Summary = props => {
                                                         null
                                                 }
                                             </TableBody>
+                                            <TableFooter>
+                                                {
+                                                    Array.isArray(rolesResponse)
+                                                        ?
+                                                        <>
+                                                        <TableRow>
+                                                            <HeadCell rowSpan="100">Celá role</HeadCell>
+                                                            <DataCell>Uzavřené</DataCell>
+                                                                {rolesResponse.map((role, roleIndex) => (
+                                                                    <DataCell key={roleIndex}>
+                                                                        {role.finalized ? "Ano" : "Ne"} 
+                                                                    </DataCell>
+                                                                ))}
+                                                            </TableRow>
+                                                            <TableRow>
+                                                                <DataCell>Známka</DataCell>
+                                                                {rolesResponse.map((role, roleIndex) => (
+                                                                    <DataCell key={roleIndex}>
+                                                                        {role.markText ? role.markText : <i>Žádná známka</i>}
+                                                                    </DataCell>
+                                                                ))}
+                                                            </TableRow>
+                                                            <TableRow>
+                                                                <DataCell>Statistiky</DataCell>
+                                                                {rolesResponse.map((role, roleIndex) => (
+                                                                    <DataCell key={roleIndex}>
+                                                                        <OverviewRoleStats work={workData} role={ role } />
+                                                                    </DataCell>
+                                                                ))}
+                                                            </TableRow>
+                                                            <TableRow>
+                                                                <DataCell>Text posudku</DataCell>
+                                                                {rolesResponse.map((role, roleIndex) => (
+                                                                    <DataCell key={roleIndex}>
+                                                                        {role.review ? < div dangerouslySetInnerHTML={role.review} /> : <i>Žádný text</i>}
+                                                                    </DataCell>
+                                                                ))}
+                                                            </TableRow>
+                                                            <TableRow>
+                                                                <DataCell>Otázky pro studenta</DataCell>
+                                                                {rolesResponse.map((role, roleIndex) => (
+                                                                    <DataCell key={roleIndex}>
+                                                                        
+                                                                    </DataCell>
+                                                                ))}
+                                                            </TableRow>
+                                                        </>
+                                                        :
+                                                        null
+                                                }
+                                            </TableFooter>
                                         </Table>
                                     </TableWrapper>
                                 </CardBody>

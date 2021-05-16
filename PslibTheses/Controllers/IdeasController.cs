@@ -797,6 +797,33 @@ namespace PslibTheses.Controllers
             return Ok(new { removedGoal.Id, removedGoal.IdeaId, removedGoal.Order, removedGoal.Text });
         }
 
+        [HttpPut("{id}/goals/shakedown")]
+        public async Task<ActionResult<IdeaGoal>> PutIdeaGoalsShakedown(int id)
+        {
+            var idea = await _context.Ideas.FindAsync(id);
+            if (idea == null)
+            {
+                return NotFound("idea not found");
+            }
+
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!User.HasClaim(ClaimTypes.NameIdentifier, idea.UserId.ToString()) && !isEvaluator.Succeeded)
+            {
+                return Unauthorized("only owner or privileged user can modify outlines of an idea");
+            }
+
+            var goals = _context.IdeaGoals.Where(ig => ig.Idea == idea).OrderBy(ig => ig.Order).AsNoTracking().ToList();
+            if (goals != null)
+            {
+                for (int i = 0; i < goals.Count; i++)
+                {
+                    goals[i].Order = i + 1;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            return Ok();
+        }
+
         // --- outlines
         // GET: Ideas/5/outlines
         /// <summary>
@@ -1127,6 +1154,33 @@ namespace PslibTheses.Controllers
             }
 
             return Ok(new { removedOutline.Id, removedOutline.IdeaId, removedOutline.Order, removedOutline.Text });
+        }
+
+        [HttpPut("{id}/outlines/shakedown")]
+        public async Task<ActionResult<IdeaGoal>> PutIdeaOutlinesShakedown(int id)
+        {
+            var idea = await _context.Ideas.FindAsync(id);
+            if (idea == null)
+            {
+                return NotFound("idea not found");
+            }
+
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!User.HasClaim(ClaimTypes.NameIdentifier, idea.UserId.ToString()) && !isEvaluator.Succeeded)
+            {
+                return Unauthorized("only owner or privileged user can modify outlines of an idea");
+            }
+
+            var outlines = _context.IdeaOutlines.Where(io => io.Idea == idea).OrderBy(io => io.Order).AsNoTracking().ToList();
+            if (outlines != null)
+            {
+                for(int i = 0; i < outlines.Count; i++)
+                {
+                    outlines[i].Order = i + 1;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            return Ok();
         }
 
         // Offers

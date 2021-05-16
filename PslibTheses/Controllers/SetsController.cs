@@ -787,7 +787,8 @@ namespace PslibTheses.Controllers
                 Text = item.Text,
                 Description = item.Description,
                 Rating = item.Rating,
-                Critical = item.Critical
+                Critical = item.Critical,
+                CriticalInTerm = item.CriticalInTerm
             };
             _context.SetAnswers.Add(newAnswer);
             await _context.SaveChangesAsync();
@@ -806,6 +807,7 @@ namespace PslibTheses.Controllers
             answer.Text = sa.Text;
             answer.Description = sa.Description;
             answer.Critical = sa.Critical;
+            answer.CriticalInTerm = sa.CriticalInTerm;
             answer.Rating = sa.Rating;
             await _context.SaveChangesAsync();
             return Ok(answer);

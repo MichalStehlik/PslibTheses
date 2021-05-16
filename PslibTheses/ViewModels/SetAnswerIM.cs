@@ -12,5 +12,6 @@ namespace PslibTheses.ViewModels
         public string Description { get; set; }
         public int Rating { get; set; }
         public bool Critical { get; set; }
+        public bool CriticalInTerm { get; set; }
     }
 }
