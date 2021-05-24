@@ -273,7 +273,7 @@ const Summary = props => {
                                                                 <DataCell>Text posudku</DataCell>
                                                                 {rolesResponse.map((role, roleIndex) => (
                                                                     <DataCell key={roleIndex}>
-                                                                        {role.review ? < div dangerouslySetInnerHTML={role.review} /> : <i>Žádný text</i>}
+                                                                        {role.review ? <span dangerouslySetInnerHTML={{ __html: role.review }} /> : <i>Žádný text</i>}
                                                                     </DataCell>
                                                                 ))}
                                                             </TableRow>

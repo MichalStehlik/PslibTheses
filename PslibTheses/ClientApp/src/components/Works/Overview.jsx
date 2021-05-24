@@ -225,7 +225,7 @@ const Overview = props => {
                         {
                             roleData && roleData.review
                                 ?
-                                < div dangerouslySetInnerHTML={roleData.review} />
+                                <span dangerouslySetInnerHTML={{ __html: roleData.review }} />
                                 :
                                 <p><i>Text posudku je prázdný.</i></p>
                         }

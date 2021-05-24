@@ -1612,6 +1612,7 @@ namespace PslibTheses.Controllers
                 return BadRequest("work is not in state suitable for writing reviews");
             }
             role.Review = input.Review;
+            role.Updated = DateTime.Now;
             await _context.SaveChangesAsync();
             return Ok(role);
         }
