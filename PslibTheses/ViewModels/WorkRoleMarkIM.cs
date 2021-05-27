@@ -9,6 +9,5 @@ namespace PslibTheses.ViewModels
         public string MarkText { get; set; }
         public double? MarkValue { get; set; }
         public bool Finalized { get; set; } = false;
-        public DateTime Updated { get; set; }
     }
 }

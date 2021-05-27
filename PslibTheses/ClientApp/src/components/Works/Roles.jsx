@@ -150,7 +150,32 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
     useEffect(()=>{
         fetchData();
         fetchTerms();
-    },[fetchData, fetchTerms]);
+    }, [fetchData, fetchTerms]);
+
+    const setFinalized = useCallback((workId, workRoleId, finalized) => {
+        axios.put(process.env.REACT_APP_API_URL + "/works/" + workId + "/roles/" + workRoleId + "/finalized/" + finalized, {
+        }, {
+            headers: {
+                Authorization: "Bearer " + accessToken,
+                "Content-Type": "application/json"
+            }
+        })
+            .then(response => {
+                dispatch({ type: ADD_MESSAGE, text: "Stav hodnocení práce byl změně.", variant: "success", dismissible: true, expiration: 3 });
+                fetchData();
+            })
+            .catch(error => {
+                if (error.response) {
+                    dispatch({ type: ADD_MESSAGE, text: "Uložení stavu se nepodařilo. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3 });
+                }
+                else {
+                    dispatch({ type: ADD_MESSAGE, text: "Uložení stavu se nepodařilo.", variant: "error", dismissible: true, expiration: 3 });
+                }
+            })
+            .then(() => {
+            });
+    }, [accessToken, dispatch, fetchData]);
+
 
     const showRoles = () => {
         if (isRolesLoading || isTermsLoading) {
@@ -289,7 +314,7 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                                                 <ButtonBlock>
                                                     {role.workRoleUsers.map((item) => (item.userId)).includes(profile.sub) && (workData.state === 3)
                                                         ?
-                                                        role.finalized ? <Button size="8pt" variant="warning" outline>Otevřít hodnocení</Button> : <Button size="8pt" variant="success" outline onClick={e => { history.push("/works/" + workData.id + "/review/" + role.id) }}>Upravit posudek</Button>
+                                                        role.finalized ? <Button size="8pt" variant="warning" outline onClick={e => {setFinalized(workData.id, role.id, false) }}>Otevřít hodnocení</Button> : <Button size="8pt" variant="success" outline onClick={e => { history.push("/works/" + workData.id + "/review/" + role.id) }}>Upravit posudek</Button>
                                                         :
                                                         null
                                                     }

@@ -1575,7 +1575,7 @@ namespace PslibTheses.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
         [HttpPut("{id}/roles/{workRoleId}/review")]
         public async Task<ActionResult> PutWorkRoleReview(int id, int workRoleId, [FromBody] WorkRoleReviewIM input)
         {
@@ -1613,6 +1613,83 @@ namespace PslibTheses.Controllers
             }
             role.Review = input.Review;
             role.Updated = DateTime.Now;
+            await _context.SaveChangesAsync();
+            return Ok(role);
+        }
+
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        [HttpPut("{id}/roles/{workRoleId}/mark")]
+        public async Task<ActionResult> PutWorkRoleMark(int id, int workRoleId, [FromBody] WorkRoleMarkIM input)
+        {
+            if (id != input.WorkId)
+            {
+                return BadRequest("inconsistent work data");
+            }
+            if (workRoleId != input.WorkRoleId)
+            {
+                return BadRequest("inconsistent workRole data");
+            }
+            var work = await _context.Works.FindAsync(id);
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var role = _context.WorkRoles
+                .Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            if (role == null)
+            {
+                return NotFound("role not found");
+            }
+            _context.Entry(role).Reference(wr => wr.SetRole).Load();
+            _context.Entry(role).Collection(wr => wr.WorkRoleUsers).Load();
+            ICollection<string> evaluators = role.WorkRoleUsers.Select(wru => wru.UserId.ToString()).ToArray();
+            var userId = User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
+            var isAdmin = await _authorizationService.AuthorizeAsync(User, "Administrator");
+            if (!evaluators.Contains(userId) && !isAdmin.Succeeded)
+            {
+                return Unauthorized("user is not administrator nor evaluator in this role");
+            }
+            if (work.State != WorkState.Delivered)
+            {
+                return BadRequest("work is not in state suitable for writing reviews");
+            }
+            role.MarkText = input.MarkText;
+            role.MarkValue = input.MarkValue;
+            role.Finalized = input.Finalized;
+            role.Updated = DateTime.Now;
+            await _context.SaveChangesAsync();
+            return Ok(role);
+        }
+
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        [HttpPut("{id}/roles/{workRoleId}/finalized/{value}")]
+        public async Task<ActionResult> PutWorkRoleFinalized(int id, int workRoleId, bool value)
+        {
+            var work = await _context.Works.FindAsync(id);
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var role = _context.WorkRoles
+                .Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            if (role == null)
+            {
+                return NotFound("role not found");
+            }
+            _context.Entry(role).Reference(wr => wr.SetRole).Load();
+            _context.Entry(role).Collection(wr => wr.WorkRoleUsers).Load();
+            ICollection<string> evaluators = role.WorkRoleUsers.Select(wru => wru.UserId.ToString()).ToArray();
+            var userId = User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
+            var isAdmin = await _authorizationService.AuthorizeAsync(User, "Administrator");
+            if (!evaluators.Contains(userId) && !isAdmin.Succeeded)
+            {
+                return Unauthorized("user is not administrator nor evaluator in this role");
+            }
+            if (work.State != WorkState.Delivered)
+            {
+                return BadRequest("work is not in state suitable for writing reviews");
+            }
+            role.Finalized = value;
             await _context.SaveChangesAsync();
             return Ok(role);
         }

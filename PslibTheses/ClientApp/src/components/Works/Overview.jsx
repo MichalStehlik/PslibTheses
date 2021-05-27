@@ -230,7 +230,7 @@ const Overview = props => {
                                 <p><i>Text posudku je prázdný.</i></p>
                         }
                         <CardTypeValueList>
-                            <CardTypeValueItem type="Známka" value={roleData && roleData.mark ? roleData.mark : "?"} />
+                            <CardTypeValueItem type="Známka" value={roleData && roleData.markText ? roleData.markText : "?"} />
                         </CardTypeValueList>
                     </CardBody>
                 </Card>
