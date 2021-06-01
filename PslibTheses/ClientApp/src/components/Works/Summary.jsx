@@ -1,12 +1,11 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from "react-router-dom";
 import { useAppContext, SET_TITLE } from "../../providers/ApplicationProvider";
-import { ActionLink, Alert, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Loader, TableWrapper, Table, TableRow, TableHeader, TableBody, HeadCell, DataCell, CardFooter, TableFooter } from "../general";
+import { ActionLink, Alert, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Loader, TableWrapper, Table, TableRow, TableHeader, TableBody, HeadCell, DataCell, TableFooter } from "../general";
 import LoadedUser from "../common/LoadedUser";
 import DateTime from "../common/DateTime";
 import styled from 'styled-components';
 import axios from "axios";
-import { ADMIN_ROLE, MANAGER_ROLE } from "../../configuration/constants";
 import requireManager from "../Auth/requireManager";
 import OverviewQuestions from "./OverviewQuestions";
 import OverviewRoleStats from "./OverviewRoleStats";
@@ -35,6 +34,56 @@ const UsersInRole = ({ role }) => {
             }
         </StyledUsersInRole>
     );
+}
+
+const StudentQuestions = ({ id, roleId }) => {
+    const [{ accessToken }] = useAppContext();
+    const [questionsData, setQuestionsData] = useState(null);
+    const [isQuestionsLoading, setIsQuestionsLoading] = useState(false);
+    const [questionsError, setQuestionsError] = useState(false);
+    const fetchQuestionsData = useCallback((id, roleId) => {
+        setIsQuestionsLoading(true);
+        setQuestionsError(false);
+        axios.get(process.env.REACT_APP_API_URL + "/works/" + id + "/roles/" + roleId + "/reviewQuestions", { headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" } })
+            .then(response => {
+                setQuestionsData(response.data);
+            })
+            .catch(err => {
+                if (err.response) {
+                    setQuestionsError({ text: err.response.statusText, status: err.response.status });
+                }
+                else {
+                    setQuestionsError({ text: "Neznámá chyba", status: "" });
+                }
+                setQuestionsData(null);
+            })
+            .then(() => {
+                setIsQuestionsLoading(false);
+            });
+    }, [accessToken]);
+    useEffect(() => {
+        fetchQuestionsData(id, roleId);
+    }, [roleId, fetchQuestionsData, id]);
+    if (isQuestionsLoading) {
+        return <Loader size="2" />
+    }
+    else if (questionsError) {
+        return <Alert variant="error" text="Při získávání otázek došlo k chybě." />
+    }
+    else if (questionsData) {
+        return (
+            (Array.isArray(questionsData) && questionsData.length > 0)
+                ?
+                <ol>
+                    {questionsData.map((item, index) => (<li key={index}>{item.text}</li>))}
+                </ol>
+                :
+                <p><i>Źádné otázky nejsou.</i></p>
+        );
+    }
+    else {
+        return <Loader size="2" />
+    }
 }
 
 const Summary = props => {
@@ -281,7 +330,7 @@ const Summary = props => {
                                                                 <DataCell>Otázky pro studenta</DataCell>
                                                                 {rolesResponse.map((role, roleIndex) => (
                                                                     <DataCell key={roleIndex}>
-                                                                        
+                                                                        <StudentQuestions id={ id } roleId={ role.id } />
                                                                     </DataCell>
                                                                 ))}
                                                             </TableRow>

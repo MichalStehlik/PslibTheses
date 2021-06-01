@@ -356,39 +356,90 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                 ?
                 <Alert variant="info" text="Pro práce ve stavu přípravy nelze vygenerovat přihlášku. Přepněte stav práce alespoň na Běžící." />
                 :
-                <CenteredContent>
-                <Button onClick={e => {
-                    axios({
-                        url: process.env.REACT_APP_API_URL + "/works/" + id + "/application",
-                        method: 'GET',
-                        responseType: 'blob',
-                        headers: {
-                            Authorization: "Bearer " + accessToken,
-                            "Content-Type": "text/html"
-                        } 
-                      }).then((response) => {
-                            let fileContent = new Blob([response.data]);
-                            const url = window.URL.createObjectURL(fileContent);
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.setAttribute('download', 'prihlaska.html');
-                            document.body.appendChild(link);
-                            link.click();
-                            dispatch({type: ADD_MESSAGE, text: "Přihláška byla uložena.", variant: "success", dismissible: true, expiration: 3});
-                      }).catch((error)=>{
-                            dispatch({type: ADD_MESSAGE, text: "Při získávání přihlášky došlo k chybě.", variant: "error", dismissible: true, expiration: 3});
-                      })
-                }}>Uložit přihlášku</Button>
-                </CenteredContent>
+                <ButtonBlock>
+                        <Button size="8pt" variant="success" onClick={e => {
+                        axios({
+                            url: process.env.REACT_APP_API_URL + "/works/" + id + "/application",
+                            method: 'GET',
+                            responseType: 'blob',
+                            headers: {
+                                Authorization: "Bearer " + accessToken,
+                                "Content-Type": "text/html"
+                            } 
+                          }).then((response) => {
+                                let fileContent = new Blob([response.data]);
+                                const url = window.URL.createObjectURL(fileContent);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.setAttribute('download', 'prihlaska.html');
+                                document.body.appendChild(link);
+                                link.click();
+                                dispatch({type: ADD_MESSAGE, text: "Přihláška byla uložena.", variant: "success", dismissible: true, expiration: 3});
+                          }).catch((error)=>{
+                                dispatch({type: ADD_MESSAGE, text: "Při získávání přihlášky došlo k chybě.", variant: "error", dismissible: true, expiration: 3});
+                          })
+                    }}>Uložit přihlášku</Button>
+                </ButtonBlock>
             }
             {
                 workData.state < 4
                 ?
                 <Alert variant="info" text="Dokud není práce zhodnocená, nelze vygenerovat žádný posudek." />
                 :
-                <CenteredContent>
-                    <Button>Uložit posudek pro studenta</Button>
-                </CenteredContent>
+                <ButtonBlock>
+                        <Button size="8pt" variant="success" onClick={e => {
+                        axios({
+                            url: process.env.REACT_APP_API_URL + "/works/" + id + "/review",
+                            method: 'GET',
+                            responseType: 'blob',
+                            headers: {
+                                Authorization: "Bearer " + accessToken,
+                                "Content-Type": "text/html"
+                            }
+                        }).then((response) => {
+                            let fileContent = new Blob([response.data]);
+                            const url = window.URL.createObjectURL(fileContent);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.setAttribute('download', 'hodnoceni.html');
+                            document.body.appendChild(link);
+                            link.click();
+                            dispatch({ type: ADD_MESSAGE, text: "Posudek byl uložen.", variant: "success", dismissible: true, expiration: 3 });
+                        }).catch((error) => {
+                            dispatch({ type: ADD_MESSAGE, text: "Při získávání posudku došlo k chybě.", variant: "error", dismissible: true, expiration: 3 });
+                        })
+                        }}>Uložit posudek</Button>
+                                    {(profile) && (profile[ADMIN_ROLE] === "1" || profile[MANAGER_ROLE] === "1")
+                                        ?
+                                        <Button size="8pt" variant="warning" onClick={e => {
+                                            axios({
+                                                url: process.env.REACT_APP_API_URL + "/works/" + id + "/review",
+                                                method: 'GET',
+                                                responseType: 'blob',
+                                                headers: {
+                                                    Authorization: "Bearer " + accessToken,
+                                                    "Content-Type": "text/html"
+                                                },
+                                                data: {
+                                                    summary: true
+                                                }
+                                            }).then((response) => {
+                                                let fileContent = new Blob([response.data]);
+                                                const url = window.URL.createObjectURL(fileContent);
+                                                const link = document.createElement('a');
+                                                link.href = url;
+                                                link.setAttribute('download', 'hodnoceni.html');
+                                                document.body.appendChild(link);
+                                                link.click();
+                                                dispatch({ type: ADD_MESSAGE, text: "Posudek byl uložen.", variant: "success", dismissible: true, expiration: 3 });
+                                            }).catch((error) => {
+                                                dispatch({ type: ADD_MESSAGE, text: "Při získávání posudku došlo k chybě.", variant: "error", dismissible: true, expiration: 3 });
+                                            })
+                                        }}>Uložit posudek se známkami</Button>
+                                        :
+                                        null
+                                    }
+                </ButtonBlock>
             }
             </CardBody>
             :

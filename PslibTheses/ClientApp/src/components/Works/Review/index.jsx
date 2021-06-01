@@ -125,8 +125,8 @@ const Review = props => {
                                     ?
                                     <>
                                         <Text work={workData} role={roleData} />
-                                        <Mark work={workData} role={ roleData} />
                                         <Questions work={workData} role={roleData} />
+                                        <Mark work={workData} role={ roleData} />                                 
                                     </>
                                     :
                                     null

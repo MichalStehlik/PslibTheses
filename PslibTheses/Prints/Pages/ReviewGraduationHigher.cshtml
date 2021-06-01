@@ -1,0 +1,39 @@
+﻿@using PslibTheses.Prints.ViewModels
+@model ReviewVM
+<header id="document-title">
+    <h1>Hodnocení absolventské práce</h1>
+</header>
+<section id="work-data">
+    <table>
+        <tr>
+            <th>Jméno a příjmení studenta</th>
+            <th>Třída</th>
+        </tr>
+        <tr>
+            <td>@Model.AuthorName</td>
+            @if (String.IsNullOrEmpty(Model.ClassName))
+            {
+                <td>&ndash;</td>
+            }
+            else
+            {
+                <td>@Model.ClassName</td>
+            }
+        </tr>
+        <tr>
+            <th>Název práce</th>
+            <th>Školní rok</th>
+        </tr>
+        <tr>
+            <td>@Model.Title</td>
+            @if (String.IsNullOrEmpty(Model.SetName))
+            {
+                <td>&ndash;</td>
+            }
+            else
+            {
+                <td>@Model.SetName</td>
+            }
+        </tr>
+    </table>
+</section>

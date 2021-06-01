@@ -1696,10 +1696,10 @@ namespace PslibTheses.Controllers
 
         // review questions
         [Authorize]
-        [HttpGet("{id}/roles/{workRoleId}/reviewQuestions")]
-        public async Task<ActionResult<List<WorkRoleQuestion>>> GetWorkRoleReviewQuestions(int id, int workRoleId)
+        [HttpGet("{workId}/roles/{workRoleId}/reviewQuestions")]
+        public async Task<ActionResult<List<WorkRoleQuestion>>> GetWorkRoleReviewQuestions(int workId, int workRoleId)
         {
-            var work = await _context.Works.FindAsync(id);
+            var work = await _context.Works.FindAsync(workId);
             if (work == null)
             {
                 return NotFound("work not found");
@@ -1720,6 +1720,107 @@ namespace PslibTheses.Controllers
             {
                 return Ok(questions);
             }
+        }
+
+        [Authorize]
+        [HttpGet("{workId}/roles/{workRoleId}/reviewQuestions/{id}")]
+        public async Task<ActionResult<List<WorkRoleQuestion>>> GetWorkRoleReviewQuestion(int id)
+        {
+            var question = await _context.WorkRoleQuestions.FindAsync(id);
+            if (question == null)
+            {
+                return NotFound("question not found");
+            }
+            _context.Entry(question).Reference(q => q.WorkRole).Load();
+            _context.Entry(question).Reference(q => q.WorkRole.Work).Load();
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!isEvaluator.Succeeded && !User.HasClaim(ClaimTypes.NameIdentifier, question.WorkRole.Work.AuthorId.ToString()) && question.WorkRole.Work.State < WorkState.Evaluated)
+            {
+                return Ok();
+            }
+            else
+            {
+                return Ok(question);
+            }
+        }
+
+        [HttpPost("{workId}/roles/{workRoleId}/reviewQuestions")]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        public async Task<ActionResult<WorkRoleQuestion>> PostWorkRoleReviewQuestion(int workId, int workRoleId, [FromBody] TextIM input)
+        {
+            var work = await _context.Works.FindAsync(workId);
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var role = _context.WorkRoles
+                .Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
+            if (role == null)
+            {
+                return NotFound("role not found");
+            }
+            _context.Entry(role).Collection(r => r.WorkRoleUsers).Load();
+            ICollection<string> evaluators = role.WorkRoleUsers.Select(wru => wru.UserId.ToString()).ToArray();
+            var userId = User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
+            var isAdmin = await _authorizationService.AuthorizeAsync(User, "Administrator");
+            if (!evaluators.Contains(userId) && !isAdmin.Succeeded)
+            {
+                return Unauthorized("user is nor administrator nor evaluator in this role");
+            }
+            WorkRoleQuestion nwrq = new WorkRoleQuestion { WorkRoleId = workRoleId, Created = DateTime.Now, CreatedById = Guid.Parse(userId), Text = input.Text};
+            _context.WorkRoleQuestions.Add(nwrq);
+            await _context.SaveChangesAsync();
+            return Ok(nwrq);
+        }
+
+        [HttpPut("{workId}/roles/{workRoleId}/reviewQuestions/{id}")]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        public async Task<ActionResult<WorkRoleQuestion>> PutWorkRoleReviewQuestion(int id, [FromBody] TextIM input)
+        {
+            var question = await _context.WorkRoleQuestions.FindAsync(id);
+            if (question == null)
+            {
+                return NotFound("question not found");
+            }
+            _context.Entry(question).Reference(q => q.WorkRole).Load();
+            _context.Entry(question.WorkRole).Reference(wr => wr.Work).Load();
+            _context.Entry(question.WorkRole).Collection(wr => wr.WorkRoleUsers).Load();
+
+            var userId = User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
+            var isAdmin = await _authorizationService.AuthorizeAsync(User, "Administrator");
+            ICollection<string> evaluators = question.WorkRole.WorkRoleUsers.Select(wru => wru.UserId.ToString()).ToArray();
+            if (!evaluators.Contains(userId) && !isAdmin.Succeeded)
+            {
+                return Unauthorized("user is nor administrator nor evaluator in this role");
+            }
+            question.Text = input.Text;
+            await _context.SaveChangesAsync();
+            return Ok(question);
+        }
+
+        [HttpDelete("{workId}/roles/{workRoleId}/reviewQuestions/{id}")]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        public async Task<ActionResult<WorkRoleQuestion>> DeleteWorkRoleReviewQuestion(int id)
+        {
+            var question = await _context.WorkRoleQuestions.FindAsync(id);
+            if (question == null)
+            {
+                return NotFound("question not found");
+            }
+            _context.Entry(question).Reference(q => q.WorkRole).Load();
+            _context.Entry(question.WorkRole).Reference(wr => wr.Work).Load();
+            _context.Entry(question.WorkRole).Collection(wr => wr.WorkRoleUsers).Load();
+
+            var userId = User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
+            var isAdmin = await _authorizationService.AuthorizeAsync(User, "Administrator");
+            ICollection<string> evaluators = question.WorkRole.WorkRoleUsers.Select(wru => wru.UserId.ToString()).ToArray();
+            if (!evaluators.Contains(userId) && !isAdmin.Succeeded)
+            {
+                return Unauthorized("user is nor administrator nor evaluator in this role");
+            }
+            _context.WorkRoleQuestions.Remove(question);
+            await _context.SaveChangesAsync();
+            return Ok(question);
         }
 
         // statistics for role in term
@@ -2124,7 +2225,7 @@ namespace PslibTheses.Controllers
                 && !User.HasClaim(ClaimTypes.NameIdentifier, work.ManagerId.ToString())
                 && !isEvaluator.Succeeded)
             {
-                return BadRequest("You are not allowed do download application for this work");
+                return Forbid("You are not allowed do download application for this work");
             }
             if (work.State == WorkState.InPreparation)
             {
@@ -2196,6 +2297,84 @@ namespace PslibTheses.Controllers
                 HasGarantSignature = signGarant,
                 HasDirectorSignature = signDirector,
                 HasConsultantSignature = signConsultant
+            });
+            MemoryStream memory = new(Encoding.UTF8.GetBytes(documentBody));
+            return File(memory, "text/html", outputFileName + ".html");
+        }
+
+        // print version of review
+        [HttpGet("{id}/review")]
+        [Authorize]
+        public async Task<ActionResult> DownloadReview(int id, bool summary = false, bool history = false, bool text = true, bool questions = true)
+        {
+            var work = await _context.Works.Include(w => w.Author).Where(w => w.Id == id).FirstOrDefaultAsync();
+            if (work == null)
+            {
+                return NotFound("work not found");
+            }
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!User.HasClaim(ClaimTypes.NameIdentifier, work.AuthorId.ToString())
+                && !User.HasClaim(ClaimTypes.NameIdentifier, work.ManagerId.ToString())
+                && !isEvaluator.Succeeded)
+            {
+                return Forbid("You are not allowed do download review for this work");
+            }
+            if (work.State < WorkState.Evaluated)
+            {
+                return BadRequest("unable to render review for work in other then evaluated or finished state");
+            }
+            var set = await _context.Sets.Where(s => s.Id == work.SetId).FirstOrDefaultAsync();
+            if (work == null)
+            {
+                return NotFound("set not found");
+            }
+            var roles = _context.WorkRoles.Include(wr => wr.SetRole)
+                .Where(wr => wr.WorkId == id && wr.SetRole.PrintedInApplication == true)
+                .Include(wr => wr.WorkRoleUsers).ThenInclude(wru => wru.User)
+                .ToList();
+
+            string templateFileName = "";
+            string outputFileName = "";
+            bool containSummary = summary;
+            bool containHistory = history;
+            bool containText = text;
+            bool containQuestions = questions;
+            switch (set.Template)
+            {
+                case ApplicationTemplate.SeminarWork:
+                    {
+                        templateFileName = "/Prints/Pages/ReviewSeminar.cshtml";
+                        outputFileName = "RP" + set.Year + "_";
+                        break;
+                    }
+                case ApplicationTemplate.GraduationWorkHigher:
+                    {
+                        templateFileName = "/Prints/Pages/ReviewGraduationHigher.cshtml";
+                        outputFileName = "AP" + set.Year + "_";
+                        break;
+                    }
+                default:
+                    {
+                        templateFileName = "/Prints/Pages/ReviewGraduation.cshtml";
+                        outputFileName = "MP" + set.Year + "_";
+                        break;
+                    }
+            }
+            outputFileName += work.Name;
+            string documentBody = await _razorRenderer.RenderViewToStringAsync(templateFileName, new ReviewVM
+            {
+                AuthorName = work.Author.Name,
+                ClassName = work.ClassName,
+                Title = work.Name,
+                Subject = work.Subject,
+                Description = work.Description,
+                SetName = set.Name,
+                AppUrl = HtmlEncoder.Default.Encode(Request.Scheme + "://" + Request.Host.Value),
+                Date = DateTime.Now,
+                HasHistory = containHistory,
+                HasSummary = containSummary,
+                HasText = containText,
+                HasQuestions = containQuestions
             });
             MemoryStream memory = new(Encoding.UTF8.GetBytes(documentBody));
             return File(memory, "text/html", outputFileName + ".html");

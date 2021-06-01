@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PslibTheses.Model
@@ -14,6 +15,7 @@ namespace PslibTheses.Model
         public int Id { get; set; }
         [Required]
         public int WorkRoleId { get; set; }
+        [JsonIgnore]
         public WorkRole WorkRole { get; set; }
         [Required]
         public Guid CreatedById { get; set; }
