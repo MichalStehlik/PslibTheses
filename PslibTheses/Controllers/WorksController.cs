@@ -1332,7 +1332,7 @@ namespace PslibTheses.Controllers
         }
 
         [HttpPut("{id}/state/{newState}")]
-        [Authorize(Policy = "Manager")]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
         public async Task<ActionResult<WorkState>> PutWorkState(int id, WorkState newState)
         {
             var work = await _context.Works.FindAsync(id);
@@ -1341,7 +1341,7 @@ namespace PslibTheses.Controllers
                 return NotFound("work not found");
             }
             var next = _stateTransitions[work.State];
-            var isAdministrator = await _authorizationService.AuthorizeAsync(User, "Administrator");
+            var isAdministrator = await _authorizationService.AuthorizeAsync(User, "Manager");
             if (!isAdministrator.Succeeded)
             {
                 if (!next.Contains(newState))
@@ -2328,9 +2328,14 @@ namespace PslibTheses.Controllers
             {
                 return NotFound("set not found");
             }
+
+            if (!isEvaluator.Succeeded) summary = false;
+
             var roles = _context.WorkRoles.Include(wr => wr.SetRole)
                 .Where(wr => wr.WorkId == id && wr.SetRole.PrintedInApplication == true)
                 .Include(wr => wr.WorkRoleUsers).ThenInclude(wru => wru.User)
+                .Include(wr => wr.SetRole)
+                .Include(wr => wr.WorkRoleQuestions)
                 .ToList();
 
             string templateFileName = "";
@@ -2374,7 +2379,8 @@ namespace PslibTheses.Controllers
                 HasHistory = containHistory,
                 HasSummary = containSummary,
                 HasText = containText,
-                HasQuestions = containQuestions
+                HasQuestions = containQuestions,
+                Roles = roles,
             });
             MemoryStream memory = new(Encoding.UTF8.GetBytes(documentBody));
             return File(memory, "text/html", outputFileName + ".html");

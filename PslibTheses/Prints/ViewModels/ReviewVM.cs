@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PslibTheses.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,5 +20,6 @@ namespace PslibTheses.Prints.ViewModels
         public bool HasHistory { get; set; }
         public bool HasText { get; set; }
         public bool HasQuestions { get; set; }
+        public ICollection<WorkRole> Roles { get; set; }
     }
 }

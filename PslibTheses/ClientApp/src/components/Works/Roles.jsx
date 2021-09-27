@@ -420,7 +420,7 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                                                     Authorization: "Bearer " + accessToken,
                                                     "Content-Type": "text/html"
                                                 },
-                                                data: {
+                                                params: {
                                                     summary: true
                                                 }
                                             }).then((response) => {

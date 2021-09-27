@@ -149,14 +149,14 @@ namespace PslibTheses.Controllers
             if (id != newUser.Id)
             {
                 _logger.LogError("user record is not consistent, so cannot be updated", id);
-                return BadRequest();
+                return BadRequest("record inconsistent, provided ID is not correct");
             }
 
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
                 _logger.LogError("user not found", id);
-                return NotFound();
+                return NotFound("user not found");
             }
 
             var isAdmin = await _authorizationService.AuthorizeAsync(User, "Administrator");
@@ -183,6 +183,7 @@ namespace PslibTheses.Controllers
                 user.LockedIcon = newUser.LockedIcon;
                 user.CanBeAuthor = newUser.CanBeAuthor;
                 user.CanBeEvaluator = newUser.CanBeEvaluator;
+                user.Email = newUser.Email;
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
@@ -228,7 +229,7 @@ namespace PslibTheses.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError("storing of new user has failed", ex, user);
-                    throw ex;
+                    throw;
                 }
             }
             else
@@ -263,7 +264,7 @@ namespace PslibTheses.Controllers
             catch (Exception ex)
             {
                 _logger.LogError("deleting of user has failed", ex, user);
-                throw ex;
+                throw;
             }
 
             return user;

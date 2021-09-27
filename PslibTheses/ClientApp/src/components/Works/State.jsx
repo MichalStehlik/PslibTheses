@@ -2,7 +2,7 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {Button, CardBody, Paragraph, ButtonBlock, Loader, Alert } from "../general";
 import {useAppContext, ADD_MESSAGE} from "../../providers/ApplicationProvider";
 import axios from "axios";
-import {WorkStates, ADMIN_ROLE, MANAGER_ROLE} from "../../configuration/constants";
+import { WorkStates, ADMIN_ROLE, MANAGER_ROLE, EVALUATOR_ROLE } from "../../configuration/constants";
 
 const State = ({id, fetchData, data}) => {
     const [{accessToken, profile}, dispatch] = useAppContext();
@@ -65,7 +65,7 @@ const State = ({id, fetchData, data}) => {
     return (
         <CardBody>
             <Paragraph>Stav práce je: <b>{WorkStates[data.state]}</b>.</Paragraph>
-            {profile[ADMIN_ROLE] === "1" || (profile[MANAGER_ROLE] === "1")
+            {profile[ADMIN_ROLE] === "1" || profile[EVALUATOR_ROLE] === "1" || (profile[MANAGER_ROLE] === "1")
             ?
             Array.isArray(response) && response.length === 0
                 ?
@@ -105,7 +105,7 @@ const State = ({id, fetchData, data}) => {
             :
             ""
             }
-            {profile[ADMIN_ROLE] === "1" && Array.isArray(responseAll)
+            {(profile[ADMIN_ROLE] === "1" || profile[MANAGER_ROLE] === "1") && Array.isArray(responseAll)
                 ?
                 <>
                     <Paragraph>Administrátor může změnit stav také na:</Paragraph>

@@ -8,7 +8,7 @@ namespace PslibTheses.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "WorkEvaluations",
+                name: "WorkEvaluation",
                 columns: table => new
                 {
                     WorkId = table.Column<int>(type: "int", nullable: false),
