@@ -193,9 +193,9 @@ export const CreateFromIdea = props => {
                 <Form>
                     {(failed !== false) ? <Alert text={"Uložení práce se nepodařilo. (" + failed + ")"}  variant="error" /> : ""}
                     {(ok !== false) ? <Alert text={"Uložení práce se podařilo."}  variant="success" /> : ""}
-                    <FormTextInput name="classname" label="Třída" placeholder="L4" />
+                    <FormTextInput name="classname" label="Třída" placeholder="XX" />
                     <FormTextInput name="repositoryURL" label="Odkaz na repozitář" placeholder="https://github.com" />
-                    <Button size="9px" disabled={!values.name || !values.authorid || !values.setid} onClick={e=>{
+                    <Button size="9px" disabled={!values.authorid || !values.setid} onClick={e=>{
                         let foundSet = sets.find(s=>s.id === Number(values.setid));
                         let set = foundSet !== undefined ? foundSet.name : "";
                         set = set.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g,"-");

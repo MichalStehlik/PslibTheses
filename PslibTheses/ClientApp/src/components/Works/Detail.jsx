@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { CardContainer, Card, ActionLink, CardHeader, Subheading, Loader, Alert, PageTitle } from "../general";
 import {useAppContext, SET_TITLE} from "../../providers/ApplicationProvider";
 import axios from "axios";
-import {ADMIN_ROLE, MANAGER_ROLE} from "../../configuration/constants";
+import { ADMIN_ROLE, MANAGER_ROLE, EVALUATOR_ROLE } from "../../configuration/constants";
 import Edit from "./Edit";
 import Display from "./Display";
 import Goals from "./Goals";
@@ -122,7 +122,7 @@ export const Detail = props => {
                 <CardHeader><Subheading>Osnova</Subheading></CardHeader>
                 <Outlines id={id} isEditable={isEditable} />
             </Card>
-                {(profile[ADMIN_ROLE] === "1" || profile[MANAGER_ROLE] === "1")
+                {(profile[EVALUATOR_ROLE] === "1" || profile[ADMIN_ROLE] === "1" || profile[MANAGER_ROLE] === "1")
             ?    
             <Card>
                 <CardHeader><Subheading>Stav práce</Subheading></CardHeader>

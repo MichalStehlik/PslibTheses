@@ -1,6 +1,6 @@
 {
   "name": "pslib-theses",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "dependencies": {
     "@ckeditor/ckeditor5-build-balloon": "^21.0.0",

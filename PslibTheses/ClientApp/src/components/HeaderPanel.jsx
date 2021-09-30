@@ -14,6 +14,9 @@ flex-direction: row;
 justify-content: space-between;
 align-items: stretch;
 color: ${props => props.theme.colors.headerForeground};
+& a {
+    color: ${props => props.theme.colors.headerForeground};
+}
 `;
 
 const StyledBellIcon = styled(BellIcon)`
@@ -31,10 +34,11 @@ fill: ${props => props.theme.colors.headerForeground};
 `;
 
 const StyledMessageCount = styled.span`
-
+color: ${props => props.theme.colors.headerForeground};
 `;
 
 const HeaderLink = styled(NavigationLink)`
+color: ${props => props.theme.colors.headerForeground};
 `;
 
 const HeaderPanel = props => {

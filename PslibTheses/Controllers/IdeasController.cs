@@ -2,15 +2,21 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PslibTheses.Data;
 using PslibTheses.Model;
+using PslibTheses.Prints.ViewModels;
+using PslibTheses.Services;
 using PslibTheses.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace PslibTheses.Controllers
@@ -22,12 +28,16 @@ namespace PslibTheses.Controllers
         private readonly ThesesContext _context;
         private readonly ILogger<IdeasController> _logger;
         private readonly IAuthorizationService _authorizationService;
+        private readonly RazorViewToStringRenderer _razorRenderer;
+        private readonly IConfiguration _configuration;
 
-        public IdeasController(ThesesContext context, ILogger<IdeasController> logger, IAuthorizationService authorizationService)
+        public IdeasController(ThesesContext context, RazorViewToStringRenderer razorRenderer, IConfiguration configuration, ILogger<IdeasController> logger, IAuthorizationService authorizationService)
         {
             _context = context;
             _logger = logger;
             _authorizationService = authorizationService;
+            _razorRenderer = razorRenderer;
+            _configuration = configuration;
         }
 
         // GET: Ideas
@@ -1302,5 +1312,39 @@ namespace PslibTheses.Controllers
             }
             return NoContent();
         }
+
+        // print version of application
+        [HttpGet("{id}/print")]
+        [Authorize]
+        public async Task<ActionResult> Download(int id)
+        {
+            var idea = await _context.Ideas.Include(i => i.User).Where(i => i.Id == id).FirstOrDefaultAsync();
+            if (idea == null)
+            {
+                return NotFound("idea not found");
+            }
+            var goals = _context.IdeaGoals.Where(ig => ig.IdeaId == id).ToList();
+            var outlines = _context.IdeaOutlines.Where(io => io.IdeaId == id).ToList();
+
+            string templateFileName = "/Prints/Pages/Idea.cshtml";
+            string outputFileName = "Idea_" + idea.Name;
+
+            outputFileName += idea.Name;
+            string documentBody = await _razorRenderer.RenderViewToStringAsync(templateFileName, new IdeaPrintVM
+            {
+                AuthorName = idea.User.Name,
+                Title = idea.Name,
+                Subject = idea.Subject,
+                Description = idea.Description,
+                Resources = idea.Resources,
+                AppUrl = HtmlEncoder.Default.Encode(Request.Scheme + "://" + Request.Host.Value),
+                Date = DateTime.Now,
+                Goals = goals,
+                Outlines = outlines,
+            });
+            MemoryStream memory = new(Encoding.UTF8.GetBytes(documentBody));
+            return File(memory, "text/html", outputFileName + ".html");
+        }
+
     }
 }

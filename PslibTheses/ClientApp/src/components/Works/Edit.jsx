@@ -151,7 +151,7 @@ export const Edit = props => {
                     <ErrorMessage name="description">{msg => <Alert variant="error" text={msg} />}</ErrorMessage>
                 </FormGroup>
                 <FormTextInput name="resources" label="Prostředky" placeholder="Kruhová klícka, křeček, zrní, černé plátno, funkční kouzelná hůlka" />
-                <FormTextInput name="classname" label="Třída" placeholder="L4" />
+                <FormTextInput name="classname" label="Třída" placeholder="XX" />
                 <FormTextInput name="repositoryURL" label="Odkaz na repozitář" placeholder="https://github.com" />
                 <Button size="9px" disabled={!values.name || !values.authorid || !values.setid} onClick={e=>{
                         let foundSet = sets.find(s=>s.id === Number(values.setid));

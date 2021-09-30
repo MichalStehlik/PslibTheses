@@ -1,0 +1,82 @@
+﻿@using PslibTheses.Prints.ViewModels
+@model IdeaPrintVM
+
+<header id="page-title" class="new-page">
+    <h1>Námět dlouhodobé práce</h1>
+</header>
+<section id="work-theme">
+    <table>
+        <tr>
+            <th class="half-width">Název</th>
+            <th>Předmět</th>
+        </tr>
+        <tr>
+            <td>@Model.Title</td>
+            <td>@Model.Subject</td>
+        </tr>
+        <tr>
+            <th colspan="2">Téma</th>
+        </tr>
+        <tr>
+            @if (String.IsNullOrEmpty(Model.Description))
+            {
+            <td>&ndash;</td>
+            }
+            else
+            {
+            <td>@Html.Raw(Model.Description)</td>
+            }
+        </tr>
+        <tr>
+            <th colspan="2">Použité prostředky</th>
+        </tr>
+        <tr>
+            @if (String.IsNullOrEmpty(Model.Resources))
+            {
+            <td>&ndash;</td>
+            }
+            else
+            {
+            <td>@Model.Resources</td>
+            }
+        </tr>
+    </table>
+</section>
+<section>
+    <h2>Cíle práce</h2>
+    @if (Model.Goals.Count > 0)
+    {
+    <table class="table">
+        @foreach (var goal in Model.Goals)
+        {
+        <tr>
+            <td class="number-column">@goal.Order</td>
+            <td>@goal.Text</td>
+        </tr>
+        }
+    </table>
+    }
+    else
+    {
+    <p>Práce nemá žádné cíle.</p>
+    }
+</section>
+<section>
+    <h2>Osnova práce</h2>
+    @if (Model.Outlines.Count > 0)
+    {
+    <table class="table">
+        @foreach (var outline in Model.Outlines)
+        {
+        <tr>
+            <td class="number-column">@outline.Order</td>
+            <td>@outline.Text</td>
+        </tr>
+        }
+    </table>
+    }
+    else
+    {
+    <p>Práce nemá žádné body osnovy.</p>
+    }
+</section>

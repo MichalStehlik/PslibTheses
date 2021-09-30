@@ -39,7 +39,29 @@ const Display = props => {
             <CardFooter>
                 <ButtonBlock>
                     <Button onClick={e => props.switchEditMode(true)}>Editace</Button>   
-                    <Button onClick={()=>{setShowDelete(true)}} disabled={isDeleting}>{!isDeleting ? "Smazání" : "Pracuji"}</Button>
+                    <Button onClick={() => { setShowDelete(true) }} disabled={isDeleting}>{!isDeleting ? "Smazání" : "Pracuji"}</Button>
+                    <Button onClick={e => {
+                            axios({
+                            url: process.env.REACT_APP_API_URL + "/ideas/" + props.data.id + "/print",
+                            method: 'GET',
+                            responseType: 'blob',
+                            headers: {
+                                Authorization: "Bearer " + accessToken,
+                                "Content-Type": "text/html"
+                            }
+                        }).then((response) => {
+                            let fileContent = new Blob([response.data]);
+                            const url = window.URL.createObjectURL(fileContent);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.setAttribute('download', 'namet.html');
+                            document.body.appendChild(link);
+                            link.click();
+                            dispatch({ type: ADD_MESSAGE, text: "Námět byl uložen.", variant: "success", dismissible: true, expiration: 3 });
+                        }).catch((error) => {
+                            dispatch({ type: ADD_MESSAGE, text: "Při získávání námětu došlo k chybě.", variant: "error", dismissible: true, expiration: 3 });
+                        })
+                    }}>Tisk</Button>
                 </ButtonBlock>
             </CardFooter>
             : 

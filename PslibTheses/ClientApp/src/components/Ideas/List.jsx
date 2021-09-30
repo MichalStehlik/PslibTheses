@@ -1,5 +1,5 @@
 import React, {useState, useMemo, useCallback, useEffect} from 'react';
-import {Link} from "react-router-dom";
+import { Link, useLocation, useHistory } from "react-router-dom";
 import {DataTable, BoolColumnFilter, ListColumnFilter, ActionLink, Badge} from "../general";
 import {DateTime} from "../common";
 import {useAppContext, SET_TITLE} from "../../providers/ApplicationProvider";
@@ -17,6 +17,9 @@ const TargetsShowcase = props => {
 }
 
 const List = props => {
+    const location = useLocation();
+    const [URLTarget, setURLTarget] = useState(null);
+    const history = useHistory();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(false);
 
@@ -26,10 +29,16 @@ const List = props => {
     const [{accessToken}, dispatch] = useAppContext();
 
     useEffect(()=>{ 
-      dispatch({type: SET_TITLE, payload: "Seznam námětů"}); 
-    },[dispatch]);
+        dispatch({ type: SET_TITLE, payload: "Seznam námětů" });
+    }, [dispatch]);
 
-    useEffect(()=>{ 
+    useEffect(() => {
+        let qpar = new URLSearchParams(location.search);
+        let targetFilter = qpar.get("target");
+        setURLTarget(targetFilter);
+    }, [location]);
+
+    useEffect(() => {
       axios.get(process.env.REACT_APP_API_URL + "/ideas/allTargets", {headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" }})
       .then(response => {
         let targets = {};
@@ -81,7 +90,8 @@ const List = props => {
                 default: break;
             }
           }
-        }
+          }
+        history.replace({search: parameters.join("&")});
         axios.get(process.env.REACT_APP_API_URL + "/ideas?" + parameters.join("&"), {headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" }})
         .then(response => {
           setData(response.data.data);
@@ -101,15 +111,17 @@ const List = props => {
           setIsLoading(false);
         });    
       })();    
-    },[accessToken]);
+    },[accessToken,history]);
 
     return (
       <>
       <>
       <ActionLink to="/ideas/create">Vytvoření</ActionLink>
       </>
-      <DataTable columns={columns} data={data} fetchData={fetchData} isLoading={isLoading} error={error} totalPages={totalPages} />
+            <DataTable columns={columns} data={data} fetchData={fetchData} isLoading={isLoading} error={error} totalPages={totalPages} />
+            <pre>{URLTarget}</pre>
       </>
+       
     );
 };
 
