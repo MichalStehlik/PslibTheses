@@ -40,27 +40,28 @@ display: flex;
 flex-direction: row;
 `;
 
-const UserInRole = ({userId, removeUserAction, isEditable}) => {
+const UserInRole = ({userId, removeUserAction, isEditable, isRolesEditable}) => {
     return (
         <StyledUserInRole>
             <LoadedUser id={userId} />
-            {isEditable ? <RemoveMiniButton onClick={e => removeUserAction()} /> : "" }
+            {isRolesEditable ? <RemoveMiniButton onClick={e => removeUserAction()} /> : "" }
         </StyledUserInRole>
     )   
 }
 
-const UsersInRole = ({work, role, setEditedRole, switchMode, removeUserAction, isEditable}) => {
+const UsersInRole = ({ work, role, setEditedRole, switchMode, removeUserAction, isEditable, isRolesEditable }) => {
+    console.log(isRolesEditable);
     return (
         <StyledUsersInRole>
             {Array.isArray(role.workRoleUsers)
                 ?
                 role.workRoleUsers.map((item, index) => (
-                    <UserInRole key={index} userId={item.userId} removeUserAction={e => { removeUserAction(work, role.id, item.userId); }} isEditable={isEditable} />
+                    <UserInRole key={index} userId={item.userId} removeUserAction={e => { removeUserAction(work, role.id, item.userId); }} isRolesEditable={isRolesEditable} />
                 ))
                 :
                 ""
             }
-            {isEditable ?
+            {isRolesEditable ?
                 <AddMiniButton onClick={e => {
                     setEditedRole(role.id);
                     switchMode(ASSIGN_ROLES);
@@ -72,7 +73,7 @@ const UsersInRole = ({work, role, setEditedRole, switchMode, removeUserAction, i
     );
 }
 
-const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, workData, ...rest}) => {
+const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, isRolesEditable, workData, ...rest}) => {
     const [{ accessToken, profile }, dispatch] = useAppContext();
     let history = useHistory();
     const [rolesResponse, setRolesResponse] = useState(null);
@@ -221,6 +222,7 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, wo
                             setEditedRole={setEditedRole}
                             removeUserAction={removeUser}
                             isEditable={isEditable}
+                            isRolesEditable={isRolesEditable}
                         />
                     </DataCell>
                 ))

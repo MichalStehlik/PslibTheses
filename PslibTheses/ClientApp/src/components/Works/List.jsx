@@ -6,6 +6,8 @@ import {useAppContext, SET_TITLE} from "../../providers/ApplicationProvider";
 import axios from "axios";
 import {WorkStates} from "../../configuration/constants";
 
+const LOCAL_STORAGE_ID = "prace2-works-state";
+
 const List = props => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(false);
@@ -13,7 +15,9 @@ const List = props => {
     const [data, setData] = useState([]);
     const [setsData, setSetsData] = useState({});
     const [totalPages, setTotalPages] = useState(0);
-    const [{accessToken}, dispatch] = useAppContext();
+    const [{ accessToken }, dispatch] = useAppContext();
+
+    let storedTableState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ID));
 
     useEffect(()=>{ 
       dispatch({type: SET_TITLE, payload: "Seznam prací"}); 
@@ -104,7 +108,16 @@ const List = props => {
       <>
       <ActionLink to="/works/create">Rychlé vytvoření</ActionLink>
       </>
-      <DataTable columns={columns} data={data} fetchData={fetchData} isLoading={isLoading} error={error} totalPages={totalPages} />
+            <DataTable
+                columns={columns}
+                data={data}
+                fetchData={fetchData}
+                isLoading={isLoading}
+                error={error}
+                totalPages={totalPages}
+                initialState={storedTableState}
+                storageId={LOCAL_STORAGE_ID}
+            />
       </>
     );
 };

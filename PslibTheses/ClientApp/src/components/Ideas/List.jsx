@@ -4,7 +4,9 @@ import {DataTable, BoolColumnFilter, ListColumnFilter, ActionLink, Badge} from "
 import {DateTime} from "../common";
 import {useAppContext, SET_TITLE} from "../../providers/ApplicationProvider";
 import axios from "axios";
-import {invertColor} from "../../helpers/colors";
+import { invertColor } from "../../helpers/colors";
+
+const LOCAL_STORAGE_ID = "prace2-ideas-state";
 
 const TargetsShowcase = props => {
   if (Array.isArray(props.targets) && (props.targets.length > 0))
@@ -18,10 +20,12 @@ const TargetsShowcase = props => {
 
 const List = props => {
     const location = useLocation();
-    const [URLTarget, setURLTarget] = useState(null);
+    const [URLState, setURLState] = useState(null);
     const history = useHistory();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(false);
+
+    let storedTableState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ID));
 
     const [data, setData] = useState([]);
     const [targetsData, setTargetsData] = useState({});
@@ -33,9 +37,9 @@ const List = props => {
     }, [dispatch]);
 
     useEffect(() => {
-        let qpar = new URLSearchParams(location.search);
-        let targetFilter = qpar.get("target");
-        setURLTarget(targetFilter);
+        let qpar = Object.fromEntries(new URLSearchParams(location.search));
+        console.log(qpar);
+        setURLState(qpar);
     }, [location]);
 
     useEffect(() => {
@@ -91,7 +95,6 @@ const List = props => {
             }
           }
           }
-        history.replace({search: parameters.join("&")});
         axios.get(process.env.REACT_APP_API_URL + "/ideas?" + parameters.join("&"), {headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" }})
         .then(response => {
           setData(response.data.data);
@@ -111,15 +114,23 @@ const List = props => {
           setIsLoading(false);
         });    
       })();    
-    },[accessToken,history]);
+    },[accessToken]);
 
     return (
       <>
       <>
       <ActionLink to="/ideas/create">Vytvoření</ActionLink>
       </>
-            <DataTable columns={columns} data={data} fetchData={fetchData} isLoading={isLoading} error={error} totalPages={totalPages} />
-            <pre>{URLTarget}</pre>
+            <DataTable
+                columns={columns}
+                data={data}
+                fetchData={fetchData}
+                isLoading={isLoading}
+                error={error}
+                totalPages={totalPages}
+                initialState={storedTableState}
+                storageId={LOCAL_STORAGE_ID }
+            />
       </>
        
     );

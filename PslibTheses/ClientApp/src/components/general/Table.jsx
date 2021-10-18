@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
-import {useTable, usePagination, useSortBy, useFilters} from 'react-table';
+import {useTable, usePagination, useSortBy, useFilters, useGlobalFilter, useRowSelect} from 'react-table';
 import styled from 'styled-components';
 import {ReactComponent as ChevronUp} from "../../assets/icons/chevron_up.svg";
 import {ReactComponent as ChevronDown} from "../../assets/icons/chevron_down.svg";
@@ -118,114 +118,124 @@ export const ListColumnFilter = ({ column: { filterValue, preFilteredRows, setFi
   )
 }
 
-export const DataTable = ({columns, data, fetchData, isLoading, error, totalPages}) => {
-  const defaultColumn = useMemo(
-    () => ({
-      Filter: TextColumnFilter,
-    }),
-    []
-  )
+export const DataTable = ({ columns, data, fetchData, isLoading, error, totalPages, initialState, storageId }) => {
+    const defaultColumn = useMemo(
+        () => ({
+            Filter: TextColumnFilter,
+        }),
+        []
+    )
 
-  const { 
-    getTableProps, 
-    getTableBodyProps, 
-    headerGroups,
-    prepareRow,
-    page,
-    canPreviousPage,
-    canNextPage,
-    //pageOptions,
-    pageCount,
-    gotoPage,
-    nextPage,
-    previousPage,
-    setPageSize,
-    setAllFilters,
-    state: { pageIndex, pageSize, sortBy, filters },
-  } = useTable({ columns, data, defaultColumn, initialState: {pageIndex: 0, pageSize: 50}, manualPagination: true, pageCount: totalPages, manualSortBy: true, disableMultiSort: true, manualFilters: true }, useFilters, useSortBy, usePagination);
+    const {
+        getTableProps,
+        getTableBodyProps,
+        headerGroups,
+        prepareRow,
+        page,
+        canPreviousPage,
+        canNextPage,
+        pageOptions,
+        pageCount,
+        gotoPage,
+        nextPage,
+        previousPage,
+        setPageSize,
+        setGlobalFilter,
+        setAllFilters,
+        state,
+    } = useTable({ columns, data, defaultColumn, initialState, manualPagination: true, pageCount: totalPages, manualSortBy: true, disableMultiSort: true, manualFilters: true }, useGlobalFilter, useFilters, useSortBy, usePagination, useRowSelect);
 
-  useEffect(()=>{
-    fetchData({page: pageIndex, size: pageSize, sort: sortBy, filters});
-  },[fetchData, pageIndex, pageSize, sortBy, filters]);
+    useEffect(() => {
+        fetchData({ page: state.pageIndex, size: state.pageSize, sort: state.sortBy, filters: state.filters });
+    }, [fetchData, state.pageIndex, state.pageSize, state.sortBy, state.filters]);
+
+    useEffect(() => {
+        if (storageId) localStorage.setItem(storageId, JSON.stringify(state));
+    }, [state, storageId]);
 
   return (
-    <>
-    <TableWrapper>
-      <Table {...getTableProps()}>
-        <TableHeader>
-          {headerGroups.map(headerGroup => (
-            <TableRow {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map(column => (
-              <HeadCell {...column.getHeaderProps(column.getSortByToggleProps())}>
-                {column.render('Header')}
-                <span>
-                  {column.isSorted
-                    ? column.isSortedDesc
-                      ? <ChevronUp height="1em" stroke="black" />
-                      : <ChevronDown height="1em" stroke="black" />
-                    : ''}
-                </span>
-              </HeadCell>
-            ))}
-          </TableRow>
-          ))}
-          {headerGroups.map(headerGroup => (
-            <TableRow {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map(column => (
-              <HeadCell {...column.getHeaderProps()}>
-                {column.canFilter ? column.render('Filter') : null}
-              </HeadCell>
-            ))}
-          </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody hover striped {...getTableBodyProps()}>
-        {
-          error ? (
-            <TableRow>
-              <DataCell colSpan={1000}><Alert text={error.text + (error.status ? " (" + error.status + ")" : "")} variant="error" /></DataCell>
-            </TableRow>
-          ) : (
-            isLoading ? (
-              <TableRow><DataCell align="center" colSpan={1000}><Loader size="2em" /></DataCell></TableRow>
-            ) : page.map(
-              (row, i) => {
-                prepareRow(row);
-                return (
-                  <TableRow {...row.getRowProps()}>
-                    {row.cells.map(cell => {
-                      return <DataCell {...cell.getCellProps()}>{cell.render('Cell')}</DataCell>
-                    })}
-                  </TableRow>
-                )}
-            )
-          )
-        }       
-        </TableBody>
-      </Table>
-    </TableWrapper>
-    <Paginator>
-      <PaginatorNavigation>
-        <FirstMiniButton onClick={() => gotoPage(0)} disabled={!canPreviousPage} />
-        <PreviousMiniButton  onClick={() => previousPage()} disabled={!canPreviousPage} />
-        <NextMiniButton  onClick={() => nextPage()} disabled={!canNextPage} />
-        <LastMiniButton  onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage} />  
-        <ResetMiniButton onClick={() => setAllFilters([])} title="Zobrazit vše" />     
-      </PaginatorNavigation>
-      <PaginatorPages>
-      {[...Array(pageCount).keys()].map((num)=>(<PaginatorPage key={num} onClick={()=>{gotoPage(num)}}>{num + 1}</PaginatorPage>))}
-      </PaginatorPages>
-      <PaginatorSize>
-        <Select value={pageSize} onChange={e => {
-          setPageSize(Number(e.target.value))
-        }}
-        >{[5, 10, 50, 100].map(pageSize => (
-          <option key={pageSize} value={pageSize}>{pageSize}</option>
-        ))}
-        </Select>
-      </PaginatorSize>
-    </Paginator>
-    </>
+      <>
+          <TableWrapper>
+              <Table {...getTableProps()}>
+                  <TableHeader>
+                      {headerGroups.map(headerGroup => (
+                          <TableRow {...headerGroup.getHeaderGroupProps()}>
+                              {headerGroup.headers.map(column => (
+                                  <HeadCell {...column.getHeaderProps(column.getSortByToggleProps())}>
+                                      {column.render('Header')}
+                                      <span>
+                                          {column.isSorted
+                                              ? column.isSortedDesc
+                                                  ? <ChevronUp height="1em" stroke="black" />
+                                                  : <ChevronDown height="1em" stroke="black" />
+                                              : ''}
+                                      </span>
+                                  </HeadCell>
+                              ))}
+                          </TableRow>
+                      ))}
+                      {headerGroups.map(headerGroup => (
+                          <TableRow {...headerGroup.getHeaderGroupProps()}>
+                              {headerGroup.headers.map(column => (
+                                  <HeadCell {...column.getHeaderProps()}>
+                                      {column.canFilter ? column.render('Filter') : null}
+                                  </HeadCell>
+                              ))}
+                          </TableRow>
+                      ))}
+                  </TableHeader>
+                  <TableBody hover striped {...getTableBodyProps()}>
+                      {
+                          error ? (
+                              <TableRow>
+                                  <DataCell colSpan={1000}><Alert text={error.text + (error.status ? " (" + error.status + ")" : "")} variant="error" /></DataCell>
+                              </TableRow>
+                          ) : (
+                              isLoading ? (
+                                  <TableRow><DataCell align="center" colSpan={1000}><Loader size="2em" /></DataCell></TableRow>
+                              ) : page.map(
+                                  (row, i) => {
+                                      prepareRow(row);
+                                      return (
+                                          <TableRow {...row.getRowProps()}>
+                                              {row.cells.map(cell => {
+                                                  return <DataCell {...cell.getCellProps()}>{cell.render('Cell')}</DataCell>
+                                              })}
+                                          </TableRow>
+                                      )
+                                  }
+                              )
+                          )
+                      }
+                  </TableBody>
+              </Table>
+          </TableWrapper>
+          <Paginator>
+              <PaginatorNavigation>
+                  <FirstMiniButton onClick={() => gotoPage(0)} disabled={!canPreviousPage} />
+                  <PreviousMiniButton onClick={() => previousPage()} disabled={!canPreviousPage} />
+                  <NextMiniButton onClick={() => nextPage()} disabled={!canNextPage} />
+                  <LastMiniButton onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage} />
+                  <ResetMiniButton onClick={() => setAllFilters([])} title="Zobrazit vše" />
+              </PaginatorNavigation>
+              <PaginatorPages>
+                  {[...Array(pageCount).keys()].map((num) => (<PaginatorPage key={num} onClick={() => { gotoPage(num) }}>{num + 1}</PaginatorPage>))}
+              </PaginatorPages>
+              <PaginatorSize>
+                  <Select value={state.pageSize} onChange={e => {
+                      setPageSize(Number(e.target.value))
+                  }}
+                  >{[5, 10, 50, 100].map(pageSize => (
+                      <option key={pageSize} value={pageSize}>{pageSize}</option>
+                  ))}
+                  </Select>
+              </PaginatorSize>
+          </Paginator>
+      </>
   )
 
+}
+
+DataTable.defaultProps = {
+    initialState: { pageIndex: 0, pageSize: 50 }
 }

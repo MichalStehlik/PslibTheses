@@ -33,13 +33,14 @@ const Edit = props => {
             initialValues={{
                 name: props.data.name ? props.data.name : "",
                 year: props.data.year ? props.data.year : "",
-                active: props.data.active ? props.data.active : "",
+                active: props.data.active ? props.data.active : false,
                 template: (props.data.template !== undefined) ? props.data.template : null,
                 scale: props.data.scaleId ? props.data.scaleId : "",
                 requiredGoals: props.data.requiredGoals ? props.data.requiredGoals : "",
                 requiredOutlines: props.data.requiredOutlines ? props.data.requiredOutlines : "",
             }}
-            validate={values=>{
+            validate={values => {
+                console.log(values);
                 let errors = {};
                 if (!values.name) errors.name = "Vyplňte název";
                 if (values.year === "") errors.year = "Vyplňte rok";
@@ -54,7 +55,7 @@ const Edit = props => {
                 Axios.put(process.env.REACT_APP_API_URL + "/sets/" + props.data.id, {
                     Name: values.name,
                     Year: Number(values.year),
-                    Active: values.active,
+                    Active: Boolean(values.active),
                     Template: Number(values.template),
                     ScaleId: Number(values.scale),
                     RequiredGoals: Number(values.requiredGoals),

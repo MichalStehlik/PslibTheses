@@ -52,7 +52,7 @@ export const Create = props => {
                     FirstName: values.firstname,
                     MiddleName: values.middlename,
                     LastName: values.lastname,
-                    Gender: values.gender,
+                    Gender: Number(values.gender),
                     Email: values.email,
                     CanBeAuthor: values.canbeauthor,
                     CanBeEvaluator: values.canbeevaluator,

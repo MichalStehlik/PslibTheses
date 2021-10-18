@@ -88,7 +88,7 @@ export const Edit = props => {
                 Subject: values.subject,
                 Resources: values.resources,
                 ClassName: values.classname,
-                RepositoryURL: props.data.repositoryURL,
+                RepositoryURL: values.repositoryURL,
                 AuthorId: values.authorid,
                 ManagerId: values.managerid,
                 SetId: Number(values.setid)

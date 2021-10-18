@@ -30,11 +30,12 @@ export const Detail = props => {
     const [error, setError] = useState(false);
     const [evaluators, setEvaluators] = useState([]);
     const [isEditable, setIsEditable] = useState(false);
+    const [isRolesEditable, setIsRolesEditable] = useState(false);
     const showRoles = () => {
         switch (rolesMode)
         {
-            case SHOW_ROLES: return <Roles id={id} owner={response ? response.userId :  false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} isEditable={isEditable} work={id} workData={response} />;
-            case ASSIGN_ROLES: return <AddRole id={id} owner={response ? response.userId :  false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} evaluators={evaluators} work={id} fetchData={fetchData} isEditable={isEditable} />;
+            case SHOW_ROLES: return <Roles id={id} owner={response ? response.userId : false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} isEditable={isEditable} isRolesEditable={isRolesEditable} work={id} workData={response} />;
+            case ASSIGN_ROLES: return <AddRole id={id} owner={response ? response.userId : false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} evaluators={evaluators} work={id} fetchData={fetchData} isEditable={isEditable} isRolesEditable={isRolesEditable} />;
         }
     }
     const fetchData = useCallback(() => {
@@ -87,6 +88,17 @@ export const Detail = props => {
                     profile[ADMIN_ROLE] === "1" 
                     || (response && profile.sub === response.userId && response.state === 0)
                     || (response && profile.sub === response.managerId && response.state === 0)
+                )
+                &&
+                response.state < 4
+            )
+        );
+        setIsRolesEditable(
+            (profile !== null) && (response !== null) && (
+                (
+                    profile[ADMIN_ROLE] === "1"
+                    || (response && profile.sub === response.userId && response.state === 0)
+                    || (response && profile.sub === response.managerId && response.state <= 1)
                 )
                 &&
                 response.state < 4
