@@ -3,7 +3,9 @@ import {Link} from "react-router-dom";
 import {DataTable, Badge, ActionLink} from "../../general";
 import {useAppContext, SET_TITLE} from "../../../providers/ApplicationProvider";
 import axios from "axios";
-import {invertColor} from "../../../helpers/colors";
+import { invertColor } from "../../../helpers/colors";
+
+const LOCAL_STORAGE_ID = "prace2-admintargets-state";
 
 const List = props => {
     const [isLoading, setIsLoading] = useState(false);
@@ -11,7 +13,9 @@ const List = props => {
 
     const [data, setData] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
-    const [{accessToken}, dispatch] = useAppContext();
+    const [{ accessToken }, dispatch] = useAppContext();
+
+    let storedTableState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ID));
 
     useEffect(()=>{ dispatch({type: SET_TITLE, payload: "Seznam cílových skupin pro náměty"}); },[dispatch]);
 
@@ -69,7 +73,16 @@ const List = props => {
       <ActionLink to="/admin">Administrace</ActionLink>
       <ActionLink to="/admin/targets/create">Vytvoření</ActionLink>
       </>
-      <DataTable columns={columns} data={data} fetchData={fetchData} isLoading={isLoading} error={error} totalPages={totalPages} />
+            <DataTable
+                columns={columns}
+                data={data}
+                fetchData={fetchData}
+                isLoading={isLoading}
+                error={error}
+                totalPages={totalPages}
+                storageId={LOCAL_STORAGE_ID}
+                initialState={storedTableState}
+            />
       </>
     );
 }

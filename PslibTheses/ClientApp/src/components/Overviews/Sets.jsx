@@ -4,13 +4,17 @@ import {DataTable, BoolColumnFilter} from "../general";
 import {useAppContext, SET_TITLE} from "../../providers/ApplicationProvider";
 import axios from "axios";
 
+const LOCAL_STORAGE_ID = "prace2-overviewsets-state";
+
 const Sets = props => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(false);
 
     const [data, setData] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
-    const [{accessToken}, dispatch] = useAppContext();
+    const [{ accessToken }, dispatch] = useAppContext();
+
+    let storedTableState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ID));
 
     useEffect(()=>{ dispatch({type: SET_TITLE, payload: "Volba sady prací"}); },[dispatch]);
 
@@ -19,7 +23,7 @@ const Sets = props => {
       {Header: "Rok", accessor: "year"},
       {Header: "Počet prací", disableFilters:true, accessor: "worksCount"},
       {Header: "Aktivní", accessor: "active", disableSortBy: true, Cell: (data)=>(data.cell.value === true ? "Ano" : "Ne"), Filter: BoolColumnFilter},
-      {Header: "Akce", Cell: (data)=>(<Link to={"/evaluation/" + data.row.original.id}>Vybrat</Link>)}
+        { Header: "Akce", Cell: (data) => (<> <Link to={"/overviews/" + data.row.original.id + "/details"}>Podrobnosti</Link> <Link to={"/overviews/" + data.row.original.id + "/summary"}>Souhrn</Link> </>)}
   ],[]);  
 
     const fetchData = useCallback(({page, size, sort, filters})=>{
@@ -69,7 +73,16 @@ const Sets = props => {
     return (
       <>
       <p>Vyberte sadu prací, se kterou chcete pracovat:</p>
-      <DataTable columns={columns} data={data} fetchData={fetchData} isLoading={isLoading} error={error} totalPages={totalPages} />
+            <DataTable
+                columns={columns}
+                data={data}
+                fetchData={fetchData}
+                isLoading={isLoading}
+                error={error}
+                totalPages={totalPages}
+                storageId={LOCAL_STORAGE_ID}
+                initialState={storedTableState}
+            />
       </>
     );
 }

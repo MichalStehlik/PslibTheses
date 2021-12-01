@@ -4,13 +4,17 @@ import {DataTable, BoolColumnFilter} from "../general";
 import {useAppContext, SET_TITLE} from "../../providers/ApplicationProvider";
 import axios from "axios";
 
+const LOCAL_STORAGE_ID = "prace2-users-state";
+
 const List = props => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(false);
 
     const [data, setData] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
-    const [{accessToken}, dispatch] = useAppContext();
+    const [{ accessToken }, dispatch] = useAppContext();
+
+    let storedTableState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ID));
 
     useEffect(()=>{ dispatch({type: SET_TITLE, payload: "Seznam uživatelů"}); },[dispatch]);
 
@@ -67,7 +71,16 @@ const List = props => {
       })();    
     },[accessToken]);
 
-    return <DataTable columns={columns} data={data} fetchData={fetchData} isLoading={isLoading} error={error} totalPages={totalPages} />
+    return <DataTable
+        columns={columns}
+        data={data}
+        fetchData={fetchData}
+        isLoading={isLoading}
+        error={error}
+        totalPages={totalPages}
+        storageId={LOCAL_STORAGE_ID}
+        initialState={storedTableState}
+    />
 }
 
 export default List;

@@ -50,7 +50,6 @@ const UserInRole = ({userId, removeUserAction, isEditable, isRolesEditable}) => 
 }
 
 const UsersInRole = ({ work, role, setEditedRole, switchMode, removeUserAction, isEditable, isRolesEditable }) => {
-    console.log(isRolesEditable);
     return (
         <StyledUsersInRole>
             {Array.isArray(role.workRoleUsers)

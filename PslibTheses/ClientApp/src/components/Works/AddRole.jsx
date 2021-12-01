@@ -1,9 +1,9 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import { Formik, ErrorMessage } from 'formik';
-import { Alert, FormGroup, Button, Label, Form, FormTextInput, FormSelect, Subheading, CardBody, CardHeader } from "../general";
+import { Alert, ButtonBlock, Button, Label, Form, FormTextInput, FormSelect, Subheading, CardBody, CardHeader } from "../general";
 import {useAppContext, ADD_MESSAGE} from "../../providers/ApplicationProvider";
 import axios from 'axios';
-import {SHOW_ROLES} from "./Detail";
+import { SHOW_ROLES, INVITE_ROLES } from "./Detail";
 import requireAuth from "../Auth/requireAuth";
 
 export const AddRole = ({editedRole, setEditedRole, switchMode, evaluators, work, fetchData, ...rest}) => {
@@ -70,10 +70,11 @@ export const AddRole = ({editedRole, setEditedRole, switchMode, evaluators, work
                         <option></option>
                         {Array.isArray(evaluators) ? evaluators.map((item,index) => (<option key={index} value={item.id}>{item.name + " (" + item.email + ")"}</option>)) : ""}
                     </FormSelect>
-                    <div>
+                    <ButtonBlock>
                         <Button type="submit" variant="primary" disabled={!((dirty && isValid) || isSubmitting)}>{!isSubmitting ? "Uložit" : "Pracuji"}</Button>
-                        <Button onClick={e=>{switchMode(SHOW_ROLES)}}>Storno</Button>
-                    </div>
+                        <Button onClick={e => { switchMode(SHOW_ROLES) }}>Storno</Button>
+                        <Button onClick={e => { switchMode(INVITE_ROLES) }}>Pozvat nového hodnotitele</Button>
+                    </ButtonBlock>
                 </Form>
                 )}
             </Formik>    

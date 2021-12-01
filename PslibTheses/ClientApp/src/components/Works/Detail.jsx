@@ -12,6 +12,7 @@ import Costs from "./Costs";
 import EditCosts from "./EditCosts";
 import Roles from "./Roles";
 import AddRole from "./AddRole";
+import InviteRole from "./InviteRole";
 import State from "./State";
 
 export const SHOW_ROLES = 0;
@@ -36,6 +37,7 @@ export const Detail = props => {
         {
             case SHOW_ROLES: return <Roles id={id} owner={response ? response.userId : false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} isEditable={isEditable} isRolesEditable={isRolesEditable} work={id} workData={response} />;
             case ASSIGN_ROLES: return <AddRole id={id} owner={response ? response.userId : false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} evaluators={evaluators} work={id} fetchData={fetchData} isEditable={isEditable} isRolesEditable={isRolesEditable} />;
+            case INVITE_ROLES: return <InviteRole id={id} owner={response ? response.userId : false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} evaluators={evaluators} work={id} fetchData={fetchData} isEditable={isEditable} isRolesEditable={isRolesEditable} />;
         }
     }
     const fetchData = useCallback(() => {
