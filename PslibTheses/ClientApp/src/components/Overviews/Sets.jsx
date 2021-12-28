@@ -23,7 +23,13 @@ const Sets = props => {
       {Header: "Rok", accessor: "year"},
       {Header: "Počet prací", disableFilters:true, accessor: "worksCount"},
       {Header: "Aktivní", accessor: "active", disableSortBy: true, Cell: (data)=>(data.cell.value === true ? "Ano" : "Ne"), Filter: BoolColumnFilter},
-        { Header: "Akce", Cell: (data) => (<> <Link to={"/overviews/" + data.row.original.id + "/details"}>Podrobnosti</Link> <Link to={"/overviews/" + data.row.original.id + "/summary"}>Souhrn</Link> </>)}
+        {
+            Header: "Akce", Cell: (data) => (
+                <>
+                    <Link to={"/overviews/" + data.row.original.id + "/details"}>Podrobnosti</Link>
+                    {/*<Link to={"/overviews/" + data.row.original.id + "/summary"}>Souhrn</Link>*/}
+                </>)
+        }
   ],[]);  
 
     const fetchData = useCallback(({page, size, sort, filters})=>{

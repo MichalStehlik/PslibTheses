@@ -2324,7 +2324,7 @@ namespace PslibTheses.Controllers
                 return BadRequest("unable to render review for work in other then evaluated or finished state");
             }
             var set = await _context.Sets.Where(s => s.Id == work.SetId).FirstOrDefaultAsync();
-            if (work == null)
+            if (set == null)
             {
                 return NotFound("set not found");
             }
@@ -2381,6 +2381,86 @@ namespace PslibTheses.Controllers
                 HasText = containText,
                 HasQuestions = containQuestions,
                 Roles = roles,
+            });
+            MemoryStream memory = new(Encoding.UTF8.GetBytes(documentBody));
+            return File(memory, "text/html", outputFileName + ".html");
+        }
+
+        // print version of review for selected works
+        [HttpGet("{ids}/reviews")]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        public async Task<ActionResult> DownloadReviews(string ids, bool summary = false, bool history = false, bool text = true, bool questions = true)
+        {
+            string[] workIdStrings = ids.Split(",");
+            List<int> worksId = new List<int>();
+            foreach (string i in workIdStrings)
+            {
+                int num = 0;
+                bool ok = Int32.TryParse(i, out num);
+                if (ok) worksId.Add(num);
+            }
+            var works = await _context.Works.Include(w => w.Author).Where(w => worksId.Contains(w.Id)).ToListAsync();
+            if (works == null)
+            {
+                return NotFound("no works found");
+            }
+
+            var set = await _context.Sets.Where(s => s.Id == works[0].SetId).FirstOrDefaultAsync();
+            if (set == null)
+            {
+                return NotFound("set not found");
+            }
+
+            Dictionary<int, List<WorkRole>> rolesInWork = new Dictionary<int, List<WorkRole>>();
+            foreach(var w in works)
+            {
+                rolesInWork.Add(w.Id, _context.WorkRoles.Include(wr => wr.SetRole)
+                .Where(wr => wr.WorkId == w.Id && wr.SetRole.PrintedInApplication == true)
+                .Include(wr => wr.WorkRoleUsers).ThenInclude(wru => wru.User)
+                .Include(wr => wr.SetRole)
+                .Include(wr => wr.WorkRoleQuestions)
+                .ToList());
+            }
+
+            string templateFileName = "";
+            string outputFileName = "";
+            bool containSummary = summary;
+            bool containHistory = history;
+            bool containText = text;
+            bool containQuestions = questions;
+            switch (set.Template)
+            {
+                case ApplicationTemplate.SeminarWork:
+                    {
+                        templateFileName = "/Prints/Pages/ReviewsSeminar.cshtml";
+                        outputFileName = "RP" + set.Year + "_";
+                        break;
+                    }
+                case ApplicationTemplate.GraduationWorkHigher:
+                    {
+                        templateFileName = "/Prints/Pages/ReviewsGraduationHigher.cshtml";
+                        outputFileName = "AP" + set.Year + "_";
+                        break;
+                    }
+                default:
+                    {
+                        templateFileName = "/Prints/Pages/ReviewsGraduation.cshtml";
+                        outputFileName = "MP" + set.Year + "_";
+                        break;
+                    }
+            }
+            outputFileName += "Posudky";
+            string documentBody = await _razorRenderer.RenderViewToStringAsync(templateFileName, new ReviewsVM
+            {
+                Works = works,
+                Roles = rolesInWork,
+                SetName = set.Name,
+                AppUrl = HtmlEncoder.Default.Encode(Request.Scheme + "://" + Request.Host.Value),
+                Date = DateTime.Now,
+                HasHistory = containHistory,
+                HasSummary = containSummary,
+                HasText = containText,
+                HasQuestions = containQuestions
             });
             MemoryStream memory = new(Encoding.UTF8.GetBytes(documentBody));
             return File(memory, "text/html", outputFileName + ".html");

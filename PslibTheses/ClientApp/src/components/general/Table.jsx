@@ -89,6 +89,11 @@ padding: 5px;
 cursor: pointer;
 `;
 
+const RowsSelection = styled.div`
+display: block;
+margin: .3rem 1rem;
+width: 100%;
+`;
 
 export const TextColumnFilter = ({ column: { filterValue, preFilteredRows, setFilter }}) => {
   return (
@@ -118,7 +123,24 @@ export const ListColumnFilter = ({ column: { filterValue, preFilteredRows, setFi
   )
 }
 
-export const DataTable = ({ columns, data, fetchData, isLoading, error, totalPages, initialState, storageId }) => {
+const IndeterminateCheckbox = React.forwardRef(
+    ({ indeterminate, ...rest }, ref) => {
+        const defaultRef = React.useRef()
+        const resolvedRef = ref || defaultRef
+
+        React.useEffect(() => {
+            resolvedRef.current.indeterminate = indeterminate
+        }, [resolvedRef, indeterminate])
+
+        return (
+            <>
+                <input type="checkbox" ref={resolvedRef} {...rest} />
+            </>
+        )
+    }
+)
+
+export const DataTable = ({ columns, data, fetchData, isLoading, error, totalPages, initialState, storageId, showRowSelect = false, setSelectedRows }) => {
     const defaultColumn = useMemo(
         () => ({
             Filter: TextColumnFilter,
@@ -141,9 +163,32 @@ export const DataTable = ({ columns, data, fetchData, isLoading, error, totalPag
         previousPage,
         setPageSize,
         setGlobalFilter,
+        selectedFlatRows,
         setAllFilters,
         state,
-    } = useTable({ columns, data, defaultColumn, initialState, manualPagination: true, pageCount: totalPages, manualSortBy: true, disableMultiSort: true, manualFilters: true }, useGlobalFilter, useFilters, useSortBy, usePagination, useRowSelect);
+    } = useTable(
+        { columns, data, defaultColumn, initialState, manualPagination: true, pageCount: totalPages, manualSortBy: true, disableMultiSort: true, manualFilters: true },
+        useGlobalFilter, useFilters, useSortBy, usePagination, useRowSelect,
+        hooks => {
+            hooks.visibleColumns.push(columns => [
+                showRowSelect ?
+                    {
+                        id: "selection",
+                        Header: ({ getToggleAllPageRowsSelectedProps }) => (
+                            <div>
+                                <IndeterminateCheckbox {...getToggleAllPageRowsSelectedProps()} />
+                            </div>
+                        ),
+                        Cell: ({ row }) => (
+                            <div>
+                                <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
+                            </div>
+                        ),
+                    } : {},
+                    ...columns,
+                ])
+        }
+        );
 
     useEffect(() => {
         fetchData({ page: state.pageIndex, size: state.pageSize, sort: state.sortBy, filters: state.filters });
@@ -153,7 +198,11 @@ export const DataTable = ({ columns, data, fetchData, isLoading, error, totalPag
         if (storageId) localStorage.setItem(storageId, JSON.stringify(state));
     }, [state, storageId]);
 
-  return (
+    useEffect(() => {
+        if (setSelectedRows) { setSelectedRows(selectedFlatRows.map(d => d.original)); }
+    }, [state]);
+    
+    return (
       <>
           <TableWrapper>
               <Table {...getTableProps()}>
@@ -225,12 +274,21 @@ export const DataTable = ({ columns, data, fetchData, isLoading, error, totalPag
                   <Select value={state.pageSize} onChange={e => {
                       setPageSize(Number(e.target.value))
                   }}
-                  >{[5, 10, 50, 100].map(pageSize => (
+                  >{[5, 10, 50, 100, 250, 500].map(pageSize => (
                       <option key={pageSize} value={pageSize}>{pageSize}</option>
                   ))}
                   </Select>
               </PaginatorSize>
-          </Paginator>
+            </Paginator>
+            {showRowSelect
+                ?
+                <RowsSelection>
+                    {"Je vybráno " + Object.keys(state.selectedRowIds).length + " řádků."}
+                </RowsSelection>
+                :
+                null
+            }
+
       </>
   )
 

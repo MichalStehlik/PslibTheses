@@ -410,36 +410,36 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, is
                             dispatch({ type: ADD_MESSAGE, text: "Při získávání posudku došlo k chybě.", variant: "error", dismissible: true, expiration: 3 });
                         })
                         }}>Uložit posudek</Button>
-                                    {(profile) && (profile[ADMIN_ROLE] === "1" || profile[MANAGER_ROLE] === "1")
-                                        ?
-                                        <Button size="8pt" variant="warning" onClick={e => {
-                                            axios({
-                                                url: process.env.REACT_APP_API_URL + "/works/" + id + "/review",
-                                                method: 'GET',
-                                                responseType: 'blob',
-                                                headers: {
-                                                    Authorization: "Bearer " + accessToken,
-                                                    "Content-Type": "text/html"
-                                                },
-                                                params: {
-                                                    summary: true
-                                                }
-                                            }).then((response) => {
-                                                let fileContent = new Blob([response.data]);
-                                                const url = window.URL.createObjectURL(fileContent);
-                                                const link = document.createElement('a');
-                                                link.href = url;
-                                                link.setAttribute('download', 'hodnoceni.html');
-                                                document.body.appendChild(link);
-                                                link.click();
-                                                dispatch({ type: ADD_MESSAGE, text: "Posudek byl uložen.", variant: "success", dismissible: true, expiration: 3 });
-                                            }).catch((error) => {
-                                                dispatch({ type: ADD_MESSAGE, text: "Při získávání posudku došlo k chybě.", variant: "error", dismissible: true, expiration: 3 });
-                                            })
-                                        }}>Uložit posudek se známkami</Button>
-                                        :
-                                        null
+                        {(profile) && (profile[ADMIN_ROLE] === "1" || profile[MANAGER_ROLE] === "1")
+                            ?
+                            <Button size="8pt" variant="warning" onClick={e => {
+                                axios({
+                                    url: process.env.REACT_APP_API_URL + "/works/" + id + "/review",
+                                    method: 'GET',
+                                    responseType: 'blob',
+                                    headers: {
+                                        Authorization: "Bearer " + accessToken,
+                                        "Content-Type": "text/html"
+                                    },
+                                    params: {
+                                        summary: true
                                     }
+                                }).then((response) => {
+                                    let fileContent = new Blob([response.data]);
+                                    const url = window.URL.createObjectURL(fileContent);
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.setAttribute('download', 'hodnoceni.html');
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    dispatch({ type: ADD_MESSAGE, text: "Posudek byl uložen.", variant: "success", dismissible: true, expiration: 3 });
+                                }).catch((error) => {
+                                    dispatch({ type: ADD_MESSAGE, text: "Při získávání posudku došlo k chybě.", variant: "error", dismissible: true, expiration: 3 });
+                                })
+                            }}>Uložit posudek se známkami</Button>
+                            :
+                            null
+                        }
                 </ButtonBlock>
             }
             </CardBody>

@@ -1,6 +1,9 @@
 ﻿@using PslibTheses.Prints.ViewModels
-@model ReviewVM
-    <div class="document-logo">
+@model ReviewsVM
+@foreach(var w in Model.Works)
+{
+    <article>
+            <div class="document-logo">
         <svg xmlns:dc="http://purl.org/dc/elements/1.1/"
              xmlns:cc="http://creativecommons.org/ns#"
              xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -161,116 +164,118 @@
 	</g>
 </svg>
     </div>
-<header id="document-title">
-    <h1>Hodnocení maturitní práce</h1>
-</header>
-<section id="work-data">
-    <table>
-        <tr>
-            <th>Jméno a příjmení studenta</th>
-            <th>Třída</th>
-        </tr>
-        <tr>
-            <td>@Model.AuthorName</td>
-            @if (String.IsNullOrEmpty(Model.ClassName))
-            {
-                <td>&ndash;</td>
-            }
-            else
-            {
-                <td>@Model.ClassName</td>
-            }
-        </tr>
-        <tr>
-            <th>Název práce</th>
-            <th>Školní rok</th>
-        </tr>
-        <tr>
-            <td>@Model.Title</td>
-            @if (String.IsNullOrEmpty(Model.SetName))
-            {
-                <td>&ndash;</td>
-            }
-            else
-            {
-                <td>@Model.SetName</td>
-            }
-        </tr>
-        <tr>
-            <th>Popis práce</th>
-        </tr>
-        <tr>
-            @if (String.IsNullOrEmpty(Model.Description))
-            {
-                <td>&ndash;</td>
-            }
-            else
-            {
-                <td>@Html.Raw(Model.Description)</td>
-            }
-        </tr>
-    </table>
-</section>
-@if (Model.HasSummary)
-{
-    <section>
-        <h1>Přehled známek</h1>
-        <table class="table">
-            @foreach(var r in Model.Roles)
-            {
-                if (r.SetRole.PrintedInReview == true)
-                    {
-                        <tr>
-                            <th>@r.SetRole.Name</th>
-                            <td>@String.Join("; ", r.WorkRoleUsers.Select(wru => wru.User.Name).ToArray())</td>
-                            <td>@r.MarkText</td>
-                        </tr>
-                    }
-            }
-        </table>
-    </section>
-}
-@foreach(var r in Model.Roles)
-{
-    if (r.SetRole.PrintedInReview == true)
-    {
-<section>
-    <h1>@r.SetRole.Name</h1>
-    @if (Model.HasText)
-    {
-        @Html.Raw(r.Review)
-    }
-    @if (Model.HasQuestions)
-    {
-        <h2>Otázky</h2>
-        @if (r.WorkRoleQuestions.Count > 0)
-        {
-            <ol>
-                @foreach (var q in r.WorkRoleQuestions)
+    <header id="document-title">
+        <h1>Hodnocení ročníkové práce</h1>
+    </header>
+    <section id="work-data">
+        <table>
+            <tr>
+                <th>Jméno a příjmení studenta</th>
+                <th>Třída</th>
+            </tr>
+            <tr>
+                <td>@w.Author.Name</td>
+                @if (String.IsNullOrEmpty(w.ClassName))
                 {
-                    <li>@q.Text</li>
-                }
-            </ol>
-        }
-        else
-        {
-            <p><em>Pro tuto roli nebyly stanoveny žádné otázky k obhajobě.</em></p>
-        }
-        @foreach (var wru in r.WorkRoleUsers)
-        {
-            <div class="signature-block">
-                <div class="signature signature-space">Podpis</div>
-                @if (wru.User != null)
-                {
-                    <div class="center">@wru.User.Name</div>
+                    <td>&ndash;</td>
                 }
                 else
                 {
-                    <div class="center"></div>
+                    <td>@w.ClassName</td>
                 }
-            </div>
+            </tr>
+            <tr>
+                <th>Název práce</th>
+                <th>Školní rok</th>
+            </tr>
+            <tr>
+                <td>@w.Name</td>
+                @if (String.IsNullOrEmpty(Model.SetName))
+                {
+                    <td>&ndash;</td>
+                }
+                else
+                {
+                    <td>@Model.SetName</td>
+                }
+            </tr>
+            <tr>
+                <th>Popis práce</th>
+            </tr>
+            <tr>
+                @if (String.IsNullOrEmpty(w.Description))
+                {
+                    <td>&ndash;</td>
+                }
+                else
+                {
+                    <td>@Html.Raw(w.Description)</td>
+                }
+            </tr>
+        </table>
+    </section>
+    @if (Model.HasSummary)
+    {
+        <section>
+            <h1>Přehled známek</h1>
+            <table class="table">
+                @foreach(var r in Model.Roles[w.Id])
+                {
+                    if (r.SetRole.PrintedInReview == true)
+                        {
+                            <tr>
+                                <th>@r.SetRole.Name</th>
+                                <td>@String.Join("; ", r.WorkRoleUsers.Select(wru => wru.User.Name).ToArray())</td>
+                                <td>@r.MarkText</td>
+                            </tr>
+                        }
+                }
+            </table>
+        </section>
+    }
+    @foreach(var r in Model.Roles[w.Id])
+    {
+        if (r.SetRole.PrintedInReview == true)
+        {
+    <section>
+        <h1>@r.SetRole.Name</h1>
+        @if (Model.HasText)
+        {
+            @Html.Raw(r.Review)
         }
+        @if (Model.HasQuestions)
+        {
+            <h2>Otázky</h2>
+            @if (r.WorkRoleQuestions.Count > 0)
+            {
+                <ol>
+                    @foreach (var q in r.WorkRoleQuestions)
+                    {
+                        <li>@q.Text</li>
+                    }
+                </ol>
+            }
+            else
+            {
+                <p><em>Pro tuto roli nebyly stanoveny žádné otázky k obhajobě.</em></p>
+            }
+            @foreach (var wru in r.WorkRoleUsers)
+            {
+                <div class="signature-block">
+                    <div class="signature signature-space">Podpis</div>
+                    @if (wru.User != null)
+                    {
+                        <div class="center">@wru.User.Name</div>
+                    }
+                    else
+                    {
+                        <div class="center"></div>
+                    }
+                </div>
+            }
+        }
+    </section>
+        } 
     }
-</section>
-    }
+    </article>
 }

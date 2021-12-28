@@ -1,12 +1,12 @@
 ﻿import React from 'react';
-import { MODE_EVALUATORS, MODE_TERM, MODE_OVERALL } from "./List";
-import DetailPageEvaluators from "./DetailPageEvaluators";
+import { MODE_TERM, MODE_OVERALL } from "./List";
+import DetailPageOverall from "./DetailPageOverall";
+import DetailPageTerm from "./DetailPageTerm";
 
-export const DetailPager = ({ mode, ...rest }) => {
+export const DetailPager = ({ mode, term, ...rest }) => {
     switch (mode) {
-        case MODE_TERM: return "Term";
-        case MODE_OVERALL: return "Overall";
-        default: return <DetailPageEvaluators mode={mode} {...rest} />
+        case MODE_TERM: return term === null ? null : <DetailPageTerm mode={mode} term={term} {...rest} />;
+        default: return <DetailPageOverall mode={mode} {...rest} />
     }
 }
 

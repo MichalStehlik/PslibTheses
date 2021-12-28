@@ -1,10 +1,14 @@
 ﻿import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useAppContext } from "../../providers/ApplicationProvider";
 import { Loader, Alert } from "../general";
-import LoadedUser from "../common/LoadedUser";
+import { TermStatistics } from "./TermStatistics";
 import axios from "axios";
 
-export const DetailPageEvaluators = ({ mode, set, role, work }) => {
+const roundToTwo = (num) => {
+    return +(Math.round(num + "e+2") + "e-2");
+}
+
+export const DetailPageTerm = ({ mode, set, role, work, term }) => {
     const [{ accessToken, profile }, dispatch] = useAppContext();
     const [roleResponse, setRoleResponse] = useState(null);
     const [isRoleLoading, setIsRoleLoading] = useState(false);
@@ -12,18 +16,14 @@ export const DetailPageEvaluators = ({ mode, set, role, work }) => {
     const fetchData = useCallback(() => {
         setIsRoleLoading(true);
         setRoleError(false);
-        axios.get(process.env.REACT_APP_API_URL + "/works/" + work.id + "/roles", {
+        axios.get(process.env.REACT_APP_API_URL + "/works/" + work.id + "/statsForRoleTerm/" + role.id + "/" + term.id, {
             headers: {
                 Authorization: "Bearer " + accessToken,
                 "Content-Type": "application/json"
             }
         })
             .then(response => {
-                for (let i of response.data) {
-                    if (i.setRoleId === role.id) {
-                        setRoleResponse(i);
-                    }
-                }
+                setRoleResponse(response.data);
             })
             .catch(error => {
                 if (error.response) {
@@ -41,15 +41,22 @@ export const DetailPageEvaluators = ({ mode, set, role, work }) => {
 
     useEffect(() => {
         fetchData();
+        console.log(roleResponse);
     }, []);
     if (isRoleLoading) {
         return <Loader size="1" />
     } else if (roleError) {
-        return <Alert text="Chyba" variant="error" />
+        return <Alert text={"Chyba:" + roleError.status} variant="error" />
     } else if (roleResponse) {
-        return <>{roleResponse.workRoleUsers.map((item, index) => (<LoadedUser key={ index} id={ item.userId } />))}</>
+        return (
+            <TermStatistics
+                mark={roleResponse.calculatedMarkInTerm === null ? "-" : roleResponse.calculatedMarkInTerm}
+                questions={roleResponse.criticalInTerm + "/" + roleResponse.filledQuestions + "/" + roleResponse.totalQuestions}
+                points={roleResponse.gainedPoints + "/" + roleResponse.filledPoints + "/" + roleResponse.totalPoints}
+            />
+        );
     } else
         return <Loader size="1" />
 }
 
-export default DetailPageEvaluators;
+export default DetailPageTerm;
