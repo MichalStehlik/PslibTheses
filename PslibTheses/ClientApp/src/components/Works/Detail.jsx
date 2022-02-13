@@ -13,11 +13,13 @@ import EditCosts from "./EditCosts";
 import Roles from "./Roles";
 import AddRole from "./AddRole";
 import InviteRole from "./InviteRole";
+import InviteRoleProcessing from "./InviteRoleProcessing";
 import State from "./State";
 
 export const SHOW_ROLES = 0;
 export const ASSIGN_ROLES = 1;
 export const INVITE_ROLES = 2;
+export const INVITE_PROCESSING = 3;
 
 export const Detail = props => {
     const { id } = useParams();
@@ -32,12 +34,14 @@ export const Detail = props => {
     const [evaluators, setEvaluators] = useState([]);
     const [isEditable, setIsEditable] = useState(false);
     const [isRolesEditable, setIsRolesEditable] = useState(false);
+    const [inviteFormData, setInviteFormData] = useState(null);
     const showRoles = () => {
         switch (rolesMode)
         {
             case SHOW_ROLES: return <Roles id={id} owner={response ? response.userId : false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} isEditable={isEditable} isRolesEditable={isRolesEditable} work={id} workData={response} />;
             case ASSIGN_ROLES: return <AddRole id={id} owner={response ? response.userId : false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} evaluators={evaluators} work={id} fetchData={fetchData} isEditable={isEditable} isRolesEditable={isRolesEditable} />;
-            case INVITE_ROLES: return <InviteRole id={id} owner={response ? response.userId : false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} evaluators={evaluators} work={id} fetchData={fetchData} isEditable={isEditable} isRolesEditable={isRolesEditable} />;
+            case INVITE_ROLES: return <InviteRole id={id} owner={response ? response.userId : false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} evaluators={evaluators} work={id} fetchData={fetchData} isEditable={isEditable} isRolesEditable={isRolesEditable} inviteFormData={inviteFormData} setInviteFormData={ setInviteFormData}/>;
+            case INVITE_PROCESSING: return <InviteRoleProcessing id={id} owner={response ? response.userId : false} switchMode={setRolesMode} editedRole={editedRole} setEditedRole={setEditedRole} evaluators={evaluators} work={id} fetchData={fetchData} isEditable={isEditable} isRolesEditable={isRolesEditable} inviteFormData={inviteFormData} setInviteFormData={setInviteFormData} />;
         }
     }
     const fetchData = useCallback(() => {

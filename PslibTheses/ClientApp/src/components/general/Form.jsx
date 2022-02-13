@@ -48,9 +48,10 @@ export const Select = styled.select`
 width: 100%;
 padding: .5em .7em;
 font-size: 1rem;
-border: none;
+border: ${props => props.size ? "solid" : "none"};
 background: transparent;
 border-bottom: 2px solid ${borderColor};
+border-color: ${borderColor};
 &:focus {
     box-shadow: 0 6px 3px -3px rgba(100,100,100,.3);
     outline: none;
