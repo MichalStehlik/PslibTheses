@@ -122,6 +122,79 @@ namespace PslibTheses.Controllers
         }
 
         // POST: Sets
+        [HttpPost("{id}/clone")]
+        [Authorize(Policy = "Administrator")]
+        public async Task<ActionResult<Set>> PostSetClone(int id)
+        {
+            var set = await _context.Sets.FindAsync(id);
+            if (set == null)
+            {
+                return NotFound("set not found");
+            }
+
+            _context.Entry(set).Collection(s => s.Terms).Load();
+            _context.Entry(set).Collection(s => s.Roles).Load();
+
+            Set newSet = new Set
+            {
+                Name = set.Name,
+                ScaleId = set.ScaleId,
+                Year = DateTime.Now.Year,
+                Template = set.Template,
+                RequiredGoals = set.RequiredGoals,
+                RequiredOutlines = set.RequiredOutlines,
+                Terms = new List<SetTerm>(),
+                Roles = new List<SetRole>(),
+            };
+            _context.Sets.Add(newSet);
+
+            foreach (SetTerm term in set.Terms)
+            {
+                DateTime d = new DateTime(newSet.Year, term.Date.Month, term.Date.Day);
+                DateTime wd = new DateTime(newSet.Year, term.WarningDate.Month, term.WarningDate.Day);
+                SetTerm newTerm = new SetTerm
+                {
+                    Name = term.Name,
+                    Date = d,
+                    WarningDate = wd
+                };
+                newSet.Terms.Add(newTerm);
+            };
+            foreach (SetRole role in set.Roles)
+            {
+                _context.Entry(role).Collection(r => r.Questions).Load();
+                SetRole newRole = new SetRole
+                {
+                    Name = role.Name,
+                    ClassTeacher = role.ClassTeacher,
+                    Manager = role.Manager,
+                    PrintedInApplication = role.PrintedInApplication,
+                    PrintedInReview = role.PrintedInReview,
+                    Questions = new List<SetQuestion>()
+                };
+                newSet.Roles.Add(newRole);
+            };
+            await _context.SaveChangesAsync();
+
+            Dictionary<int, int> RolesTransition = new Dictionary<int, int>();
+            Dictionary<int, int> TermsTransition = new Dictionary<int, int>();
+            for (int i = 0; i < set.Terms.Count; i++)
+            {
+                int ancestor = set.Terms.ToList()[i].Id;
+                int descendant = newSet.Terms.ToList()[i].Id;
+                TermsTransition.Add(ancestor,descendant);
+            }
+            for (int i = 0; i < set.Roles.Count; i++)
+            {
+                int ancestor = set.Roles.ToList()[i].Id;
+                int descendant = newSet.Roles.ToList()[i].Id;
+                RolesTransition.Add(ancestor, descendant);
+            }
+
+            return CreatedAtAction("GetSet", new { id = newSet.Id }, newSet);
+        }
+
+        // POST: Sets
         [HttpPost]
         [Authorize(Policy = "Administrator")]
         public async Task<ActionResult<Set>> PostSet(Set @set)

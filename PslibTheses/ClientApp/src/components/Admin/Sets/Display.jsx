@@ -10,11 +10,15 @@ const Display = props => {
     const [{accessToken, profile}, dispatch] = useAppContext();  
     const [showDelete, setShowDelete] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showReplication, setShowReplication] = useState(false);
+    const [isReplicating, setIsReplicating] = useState(false);
     const [isEditable, setIsEditable] = useState(true);
     let history = useHistory();
     useEffect(() => {
         setShowDelete(false);
         setIsDeleting(false);
+        setShowReplication(false);
+        setIsReplicating(false);
         return () => {setShowDelete(false); setIsDeleting(false);};
     },[]);
     useEffect(()=>{ 
@@ -39,7 +43,8 @@ const Display = props => {
         <CardFooter>
             <ButtonBlock>
                 <Button onClick={e => props.switchEditMode(true)}>Editace</Button>   
-                <Button onClick={()=>{setShowDelete(true)}} disabled={isDeleting}>{!isDeleting ? "Smazání" : "Pracuji"}</Button>
+                <Button onClick={() => { setShowDelete(true) }} disabled={isDeleting}>{!isDeleting ? "Smazání" : "Pracuji"}</Button>
+                <Button onClick={() => { setShowReplication(true) }} disabled={isReplicating}>{!isReplicating ? "Replikace" : "Pracuji"}</Button>
             </ButtonBlock>
         </CardFooter>
         :
@@ -88,7 +93,35 @@ const Display = props => {
     >
         <Paragraph>Takto smazanou sadu nebude možné nijak obnovit.</Paragraph>
         <Paragraph>Smazání sady nebude úspěšné, pokud v ní již existují nějaké práce.</Paragraph>
-    </Modal>
+            </Modal>
+            <Modal
+                active={showReplication}
+                variant="warning"
+                onDismiss={() => setShowReplication(false)}
+                title="Opravdu zkopírovat sadu?"
+                actions={
+                    <>
+                        <Button variant="light" outline onClick={async () => {
+                            setIsReplicating(true);
+                            axios.post(process.env.REACT_APP_API_URL + "/sets/" + props.data.id + "/clone", {}, { headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" } })
+                                .then(response => {
+                                    dispatch({ type: ADD_MESSAGE, text: "Sada byla zreplikována.", variant: "success", dismissible: true, expiration: 3 });
+                                    history.push("/admin/sets");
+                                })
+                                .catch(error => {
+                                    dispatch({ type: ADD_MESSAGE, text: "Replikování sady se nepodařilo.", variant: "error", dismissible: true, expiration: 3 });
+                                })
+                                .then(() => {
+                                    setIsReplicating(false);
+                                    setShowReplication(false);
+                                });
+                        }}>Kopírovat</Button>
+                        <Button variant="light" outline onClick={async () => { setShowReplication(false); }}>Storno</Button>
+                    </>
+                }
+            >
+                <Paragraph>Bude vytvořena přesná kopie celé sady. V nové sadě bude potřeba aktualizovat veškeré termíny.</Paragraph>
+            </Modal>
         </>
     ); 
 };

@@ -50,6 +50,7 @@ export const InviteRole = ({ editedRole, setEditedRole, switchMode, evaluators, 
                         <FormTextInput name="middlename" label="Prostřední jméno" placeholder="" />
                         <FormTextInput name="lastname" label="Příjmení" placeholder="Novák" required />
                         <FormTextInput name="email" label="Email" type="email" placeholder="jirka@novaku.test" required />
+                        <FormTextInput name="password" label="Heslo (nepovinné)" placeholder="Astg4jzDe" />
                         <FormRadioGroup name="gender" label="Pohlaví" values={Genders} />
                         <div>
                             <Button type="submit" variant="primary" disabled={!(isValid && dirty) || isSubmitting}>{!isSubmitting ? "Uložit" : "Pracuji"}</Button>
