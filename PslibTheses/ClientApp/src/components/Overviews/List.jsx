@@ -49,8 +49,8 @@ export const List = ({ set, roles, terms }) => {
         },
         ...roles.map((item) => ({
             Header: item.name, columns: [
-                { Header: "Hodnotitelé", Cell: (data) => (<DetailPageEvaluators mode={mode} set={set} role={item} work={data.row.original} />) },
-                { Header: "Hodnocení", Cell: (data) => (<DetailPager mode={mode} set={set} role={item} work={data.row.original} term={ term } />) },
+                { Header: item.name + ": hodnotitelé", Cell: (data) => (<DetailPageEvaluators mode={mode} set={set} role={item} work={data.row.original} />) },
+                { Header: item.name + ": hodnocení", Cell: (data) => (<DetailPager mode={mode} set={set} role={item} work={data.row.original} term={ term } />) },
             ]
         })),
         { Header: "Akce", Cell: (data) => (<><Link to={"/works/" + data.row.original.id}>Detail</Link> <Link to={"/works/" + data.row.original.id + "/overview"}>Hodnocení</Link></>) }

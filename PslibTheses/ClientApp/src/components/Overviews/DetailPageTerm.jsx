@@ -48,9 +48,10 @@ export const DetailPageTerm = ({ mode, set, role, work, term }) => {
     } else if (roleError) {
         return <Alert text={"Chyba:" + roleError.status} variant="error" />
     } else if (roleResponse) {
+        console.log(roleResponse);
         return (
             <TermStatistics
-                mark={roleResponse.calculatedMarkInTerm === null ? "-" : roleResponse.calculatedMarkInTerm}
+                mark={roleResponse.calculatedMark === null ? "-" : roleResponse.calculatedMark}
                 questions={roleResponse.criticalInTerm + "/" + roleResponse.filledQuestions + "/" + roleResponse.totalQuestions}
                 points={roleResponse.gainedPoints + "/" + roleResponse.filledPoints + "/" + roleResponse.totalPoints}
             />
