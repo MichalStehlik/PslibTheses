@@ -9,7 +9,7 @@ import {ReactComponent as UserIcon} from "../assets/icons/user.svg";
 import {ReactComponent as HammerIcon} from "../assets/icons/hammer.svg";
 
 import {devices} from "../configuration/layout";
-import {ADMIN_ROLE} from "../configuration/constants";
+import {ADMIN_ROLE, EVALUATOR_ROLE} from "../configuration/constants";
 
 const StyledMainMenu = styled.nav`
     display: flex;
@@ -90,7 +90,7 @@ const MainMenu = () => {
         <StyledMainMenu>
         <MainMenuItem to="/ideas" icon={<IdeaIcon />} text="Náměty" />
         <MainMenuItem to="/works" icon={<WorkIcon />} text="Práce" />
-        <MainMenuItem to="/overviews" icon={<OverviewIcon />} text="Souhrny" />
+            {accessToken && (profile[ADMIN_ROLE] === "1" || profile[EVALUATOR_ROLE] === "1") ? <MainMenuItem to="/overviews" icon={<OverviewIcon />} text="Souhrny" /> : ""}
         <MainMenuItem to="/users" icon={<UserIcon />} text="Uživatelé" />
         {accessToken && (profile[ADMIN_ROLE] === "1") ? <MainMenuItem to="/admin" icon={<HammerIcon />} text="Administrace" /> : ""}
     </StyledMainMenu>

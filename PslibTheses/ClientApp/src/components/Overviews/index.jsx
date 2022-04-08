@@ -7,7 +7,7 @@ import NotFound from "../NotFound";
 import LayoutRoute from "../layouts/LayoutRoute";
 import MessageLayout from "../layouts/MessageLayout";
 import {mainTheme as theme} from "../../App";
-import requireAuth from "../Auth/requireAuth";
+import requireEvaluator from "../Auth/requireEvaluator";
 
 const Index = props => {
     return (
@@ -21,4 +21,4 @@ const Index = props => {
     );
 }
 
-export default requireAuth(Index);
+export default requireEvaluator(Index);

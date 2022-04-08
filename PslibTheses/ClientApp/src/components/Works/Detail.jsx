@@ -107,7 +107,8 @@ export const Detail = props => {
                     || (response && profile.sub === response.managerId && response.state <= 1)
                 )
                 &&
-                response.state < 4
+                //response.state < 4
+                ([0, 1, 3].includes(response.state))
             )
         );
      },[accessToken, profile, response]);
