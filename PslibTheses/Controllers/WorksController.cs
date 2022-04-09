@@ -58,6 +58,7 @@ namespace PslibTheses.Controllers
             int? year = null,
             string classname = null,
             string setName = null,
+            string evaluatorId = null,
             WorkState? state = null,
             string order = "name",
             int page = 0,
@@ -66,7 +67,11 @@ namespace PslibTheses.Controllers
             IQueryable<Work> works = _context.Works
                 .Include(i => i.Author)
                 .Include(i => i.Manager)
-                .Include(i => i.Set);
+                .Include(i => i.Set)
+                .Include(i => i.Roles)
+                .ThenInclude(r => r.WorkRoleUsers)
+                .ThenInclude(wru => wru.User)
+                ;
             int total = works.CountAsync().Result;
             if (!String.IsNullOrEmpty(search))
                 works = works.Where(i => (i.Name.Contains(search)));
@@ -98,6 +103,11 @@ namespace PslibTheses.Controllers
                 works = works.Where(i => (i.Set.Year == year));
             if (state != null)
                 works = works.Where(i => (i.State == state));
+            if (evaluatorId != null)
+            {
+                var guid = Guid.Parse(evaluatorId);
+                works = works.Where(w => w.Roles.Any(wr => wr.WorkRoleUsers.Any(wru => wru.UserId == guid)));
+            }
             int filtered = works.CountAsync().Result;
             works = order switch
             {
@@ -151,7 +161,8 @@ namespace PslibTheses.Controllers
                 SetName = i.Set.Name,
                 State = i.State,
                 ClassName = i.ClassName,
-                Year = i.Set.Year
+                Year = i.Set.Year,
+                Roles = i.Roles
             }).ToList();
             int count = worksVM.Count;
             return Ok(new { total, filtered, count, page, pages = ((pagesize == 0) ? 0 : Math.Ceiling((double)filtered / pagesize)), data = worksVM });
@@ -2232,7 +2243,7 @@ namespace PslibTheses.Controllers
                 return BadRequest("unable to render application for work in preparation state");
             }
             var set = await _context.Sets.Where(s => s.Id == work.SetId).FirstOrDefaultAsync();
-            if (work == null)
+            if (set == null)
             {
                 return NotFound("set not found");
             }
@@ -2464,6 +2475,126 @@ namespace PslibTheses.Controllers
             });
             MemoryStream memory = new(Encoding.UTF8.GetBytes(documentBody));
             return File(memory, "text/html", outputFileName + ".html");
+        }
+
+        // print version of applications for selected works
+        [HttpGet("{ids}/applications")]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        public async Task<ActionResult> DownloadApplications(string ids)
+        {
+            string[] workIdStrings = ids.Split(",");
+            List<int> worksId = new List<int>();
+            foreach (string i in workIdStrings)
+            {
+                int num = 0;
+                bool ok = Int32.TryParse(i, out num);
+                if (ok) worksId.Add(num);
+            }
+            var works = await _context.Works.Include(w => w.Author).Include(w => w.Goals).Include(w => w.Outlines).Where(w => worksId.Contains(w.Id)).ToListAsync();
+            if (works == null)
+            {
+                return NotFound("no works found");
+            }
+
+            var set = await _context.Sets.Where(s => s.Id == works[0].SetId).FirstOrDefaultAsync();
+            if (set == null)
+            {
+                return NotFound("set not found");
+            }
+
+            Dictionary<int, List<WorkRole>> rolesInWork = new Dictionary<int, List<WorkRole>>();
+            foreach (var w in works)
+            {
+                rolesInWork.Add(w.Id, _context.WorkRoles.Include(wr => wr.SetRole)
+                .Where(wr => wr.WorkId == w.Id && wr.SetRole.PrintedInApplication == true)
+                .Include(wr => wr.WorkRoleUsers).ThenInclude(wru => wru.User)
+                .Include(wr => wr.SetRole)
+                .Include(wr => wr.WorkRoleQuestions)
+                .ToList());
+            }
+
+            string templateFileName = "";
+            string outputFileName = "";
+            bool signDepartmentHead = true;
+            bool signClassTeacher = true;
+            bool signGarant = true;
+            bool signDirector = true;
+            bool signConsultant = true;
+
+            switch (set.Template)
+            {
+                case ApplicationTemplate.SeminarWork:
+                    {
+                        templateFileName = "/Prints/Pages/AssignmentsSeminar.cshtml";
+                        break;
+                    }
+                case ApplicationTemplate.GraduationWorkHigher:
+                    {
+                        templateFileName = "/Prints/Pages/AssignmentsGraduationHigher.cshtml";
+                        break;
+                    }
+                default:
+                    {
+                        templateFileName = "/Prints/Pages/AssignmentsGraduation.cshtml";
+                        break;
+                    }
+            }
+            outputFileName += "Přihlášky";
+            string documentBody = await _razorRenderer.RenderViewToStringAsync(templateFileName, new AssignmentsVM
+            {
+                Works = works,
+                Roles = rolesInWork,
+                Set = set,
+                AppUrl = HtmlEncoder.Default.Encode(Request.Scheme + "://" + Request.Host.Value),
+                Date = DateTime.Now,
+                HasClassTeacherSignature = signClassTeacher,
+                HasConsultantSignature = signConsultant,
+                HasDepartmentHeadSignature = signDepartmentHead,
+                HasDirectorSignature = signDirector,
+                HasGarantSignature = signGarant,
+            });
+            MemoryStream memory = new(Encoding.UTF8.GetBytes(documentBody));
+            return File(memory, "text/html", outputFileName + ".html");
+        }
+
+        [HttpGet("{ids}/list")]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        public async Task<ActionResult> DownloadList(string ids)
+        {
+            string[] workIdStrings = ids.Split(",");
+            List<int> worksId = new List<int>();
+            foreach (string i in workIdStrings)
+            {
+                int num = 0;
+                bool ok = Int32.TryParse(i, out num);
+                if (ok) worksId.Add(num);
+            }
+            var works = await _context.Works.Include(w => w.Author).Include(w => w.Roles).ThenInclude(r => r.WorkRoleUsers).ThenInclude(wru => wru.User).Where(w => worksId.Contains(w.Id)).ToListAsync();
+            if (works == null)
+            {
+                return NotFound("no works found");
+            }
+            var set = await _context.Sets.Where(s => s.Id == works[0].SetId).FirstOrDefaultAsync();
+            if (set == null)
+            {
+                return NotFound("set not found");
+            }
+
+            var csvContent = new StringBuilder();
+            foreach (var work in works)
+            {
+                csvContent.Append($"{work.Name};{work.State};{work.Author.Name};{work.ClassName};");
+                foreach (var role in work.Roles)
+                {
+                    var users = role.WorkRoleUsers.Select(wru => wru.User.Name).ToArray();
+                    csvContent.Append(String.Join(" + ",users));
+                    csvContent.Append($";{role.MarkText};");
+                }
+                csvContent.AppendLine();
+            }
+
+            MemoryStream memory = new(Encoding.Latin1.GetBytes(csvContent.ToString()));
+            return File(memory, "text/html", "seznam.csv");
         }
     }
 }

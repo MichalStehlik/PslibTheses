@@ -37,18 +37,16 @@ export const DetailPageTerm = ({ mode, set, role, work, term }) => {
             .then(() => {
                 setIsRoleLoading(false);
             })
-    }, [accessToken, work.id]);
+    }, [accessToken, work.id, role.id, term.id]);
 
     useEffect(() => {
         fetchData();
-        console.log(roleResponse);
-    }, []);
+    }, [role, work, term]);
     if (isRoleLoading) {
         return <Loader size="1" />
     } else if (roleError) {
         return <Alert text={"Chyba:" + roleError.status} variant="error" />
     } else if (roleResponse) {
-        console.log(roleResponse);
         return (
             <TermStatistics
                 mark={roleResponse.calculatedMark === null ? "-" : roleResponse.calculatedMark}

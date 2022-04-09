@@ -19,7 +19,7 @@ namespace PslibTheses.Model
         public WorkRole WorkRole { get; set; }
         [Required]
         public Guid UserId { get; set; }
-        [JsonIgnore]
+        /*[JsonIgnore]*/
         [ForeignKey("UserId")]
         public User User { get; set; }
         [Required]

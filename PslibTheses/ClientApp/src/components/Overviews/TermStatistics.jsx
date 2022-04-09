@@ -30,7 +30,7 @@ justify-content: center;
 align-items: center;
 `;
 
-export const TermStatistics = ({ mark, questions, points }) => {
+export const TermStatistics = ({ mark, questions, points, color }) => {
     return (
         <StatsContainer>
             <StatsMark>{mark}</StatsMark>

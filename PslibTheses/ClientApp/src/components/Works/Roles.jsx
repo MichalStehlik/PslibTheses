@@ -260,7 +260,12 @@ const Roles = ({id, owner, switchMode, editedRole, setEditedRole, isEditable, is
                             {rolesResponse.map((role, roleIndex) => (
                                 <DataCell key={roleIndex}>
                                     <RoleTermWrapper onClick={e => { history.push("/works/" + workData.id + "/evaluation/" + role.id + "/" + term.id) }}>
-                                        <TermRoleStats termId={term.id} roleId={role.setRole.id} workId={workData.id} />
+                                        {(profile[EVALUATOR_ROLE] === "1" || profile[MANAGER_ROLE] === "1" || profile[ADMIN_ROLE] === "1")
+                                            ?
+                                            <TermRoleStats termId={term.id} roleId={role.setRole.id} workId={workData.id} />
+                                            :
+                                            null
+                                        }
                                         {!role.finalized && role.workRoleUsers.map((item) => (item.userId)).includes(profile.sub) && (workData.state === 1 || workData.state === 3) ? <EditMiniButton onClick={e => { history.push("/works/" + workData.id + "/evaluation/" + role.id + "/" + term.id)} } /> : null}
                                     </RoleTermWrapper>
                             </DataCell>

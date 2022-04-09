@@ -5,6 +5,7 @@ import { useAppContext, ADD_MESSAGE } from "../../providers/ApplicationProvider"
 import { WorkStates } from "../../configuration/constants";
 import { DetailPager } from "./DetailPager";
 import DetailPageEvaluators from "./DetailPageEvaluators";
+import DetailPageEvaluatorsSimple from "./DetailPageEvaluatorsSimple";
 import { ADMIN_ROLE, MANAGER_ROLE, EVALUATOR_ROLE } from "../../configuration/constants";
 import axios from "axios";
 import styled from 'styled-components';
@@ -22,6 +23,7 @@ export const MODE_OVERALL = "MODE_OVERALL";
 export const MODE_TERM = "MODE_TERM";
 
 export const List = ({ set, roles, terms }) => {
+
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(false);
 
@@ -33,7 +35,7 @@ export const List = ({ set, roles, terms }) => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const [mode, setMode] = useState(MODE_OVERALL);
-    const [term, setTerm] = useState((terms && terms.length > 0) ? terms[0] : null);
+    const [term, setTerm] = useState((terms && terms.length > 0) ? 0 : null);
 
     let storedTableState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ID));
 
@@ -47,14 +49,15 @@ export const List = ({ set, roles, terms }) => {
                 { Header: "Třída", accessor: "className" },
             ]
         },
-        ...roles.map((item) => ({
+        ...roles.map((item, index) => ({
             Header: item.name, columns: [
-                { Header: item.name + ": hodnotitelé", Cell: (data) => (<DetailPageEvaluators mode={mode} set={set} role={item} work={data.row.original} />) },
-                { Header: item.name + ": hodnocení", Cell: (data) => (<DetailPager mode={mode} set={set} role={item} work={data.row.original} term={ term } />) },
+                /*{ Header: item.name + ": hodnotitelé", Cell: (data) => (<DetailPageEvaluators mode={mode} set={set} role={item} work={data.row.original} />) },*/
+                { Header: item.name + ": hodnotitelé", Cell: (data) => { let roleId = item.id; let dta = data.row.original.roles.filter(record => record.setRoleId === roleId); return <DetailPageEvaluatorsSimple data={/*data.row.original.roles[index]*/dta[0]} />} },
+                { Header: item.name + ": hodnocení", Cell: (data) => (<DetailPager mode={mode} set={set} role={item} work={data.row.original} term={ terms[term] } />) },
             ]
         })),
         { Header: "Akce", Cell: (data) => (<><Link to={"/works/" + data.row.original.id}>Detail</Link> <Link to={"/works/" + data.row.original.id + "/overview"}>Hodnocení</Link></>) }
-    ], [mode]);
+    ], [mode, term]);
 
     const fetchData = useCallback(({ page = 0, size = 100, sort = [], filters = [] }) => {
         (async () => {
@@ -118,8 +121,8 @@ export const List = ({ set, roles, terms }) => {
                 </Select>
                 {mode === MODE_TERM
                     ?
-                    <Select onChange={e => { setTerm(term[e.target.value]) }} value={term}>
-                        {terms.map((item, index) => (<option key={index} value={item.id}>{item.name}</option>))}
+                    <Select onChange={e => { setTerm(Number(e.target.value)) }} value={term}>
+                        {terms.map((item, index) => (<option key={index} value={index}>{item.name}</option>))}
                     </Select>
                     :
                     null
@@ -140,6 +143,56 @@ export const List = ({ set, roles, terms }) => {
             {selectedRows.length > 0
                 ?
                 <ButtonBlock>
+                    <Button size="8pt" variant="success" onClick={e => {
+                        if (selectedRows.length > 0) {
+                            let mergedId = selectedRows.map((item) => (item.id)).join(",");
+                            axios({
+                                url: process.env.REACT_APP_API_URL + "/works/" + mergedId + "/applications",
+                                method: 'GET',
+                                responseType: 'blob',
+                                headers: {
+                                    Authorization: "Bearer " + accessToken,
+                                    "Content-Type": "text/html"
+                                }
+                            }).then((response) => {
+                                let fileContent = new Blob([response.data]);
+                                const url = window.URL.createObjectURL(fileContent);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.setAttribute('download', 'prihlasky.html');
+                                document.body.appendChild(link);
+                                link.click();
+                                dispatch({ type: ADD_MESSAGE, text: "Přihlášky byly uloženy.", variant: "success", dismissible: true, expiration: 3 });
+                            }).catch((error) => {
+                                dispatch({ type: ADD_MESSAGE, text: "Při získávání přihlášek došlo k chybě.", variant: "error", dismissible: true, expiration: 3 });
+                            })
+                        }
+                    }}>Přihlášky</Button>
+                    <Button size="8pt" variant="success" onClick={e => {
+                        if (selectedRows.length > 0) {
+                            let mergedId = selectedRows.map((item) => (item.id)).join(",");
+                            axios({
+                                url: process.env.REACT_APP_API_URL + "/works/" + mergedId + "/list",
+                                method: 'GET',
+                                responseType: 'blob',
+                                headers: {
+                                    Authorization: "Bearer " + accessToken,
+                                    "Content-Type": "text/html"
+                                }
+                            }).then((response) => {
+                                let fileContent = new Blob([response.data]);
+                                const url = window.URL.createObjectURL(fileContent);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.setAttribute('download', 'seznam.csv');
+                                document.body.appendChild(link);
+                                link.click();
+                                dispatch({ type: ADD_MESSAGE, text: "Seznam byl uložen.", variant: "success", dismissible: true, expiration: 3 });
+                            }).catch((error) => {
+                                dispatch({ type: ADD_MESSAGE, text: "Při získávání seznamu došlo k chybě.", variant: "error", dismissible: true, expiration: 3 });
+                            })
+                        }
+                    }}>.csv (;)</Button>
                     <Button size="8pt" variant="success" onClick={e => {
                         if (selectedRows.length > 0) {
                             let mergedId = selectedRows.map((item) => (item.id)).join(",");
@@ -234,7 +287,6 @@ export const List = ({ set, roles, terms }) => {
                         <Button outline variant="light" onClick={async () => {
                             setIsDeleting(true);
                             for (var w of selectedRows) {
-                                console.log(w);
                                 axios.delete(process.env.REACT_APP_API_URL + "/works/" + w.id, { headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" } })
                                 .then(response => {
                                     dispatch({ type: ADD_MESSAGE, text: "Práce " + w.name + " byla smazána.", variant: "success", dismissible: true, expiration: 3 });

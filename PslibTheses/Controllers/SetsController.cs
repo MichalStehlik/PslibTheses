@@ -162,15 +162,13 @@ namespace PslibTheses.Controllers
             };
             foreach (SetRole role in set.Roles)
             {
-                _context.Entry(role).Collection(r => r.Questions).Load();
                 SetRole newRole = new SetRole
                 {
                     Name = role.Name,
                     ClassTeacher = role.ClassTeacher,
                     Manager = role.Manager,
                     PrintedInApplication = role.PrintedInApplication,
-                    PrintedInReview = role.PrintedInReview,
-                    Questions = new List<SetQuestion>()
+                    PrintedInReview = role.PrintedInReview
                 };
                 newSet.Roles.Add(newRole);
             };
@@ -191,6 +189,45 @@ namespace PslibTheses.Controllers
                 RolesTransition.Add(ancestor, descendant);
             }
 
+            List<SetQuestion> newQuestions = new List<SetQuestion>();
+
+            foreach (SetRole role in set.Roles)
+            {
+                foreach (SetTerm term in set.Terms)
+                {
+                    List<SetQuestion> questions = _context.SetQuestions.Include(q => q.Answers).Where(q => q.SetRoleId == role.Id && q.SetTermId == term.Id).ToList();
+                    foreach (var q in questions)
+                    {
+                        List<SetAnswer> answers = new List<SetAnswer>();
+                        foreach (var a in q.Answers)
+                        {
+                            answers.Add(new SetAnswer { 
+                                Critical = a.Critical, 
+                                CriticalInTerm = a.CriticalInTerm,
+                                Text = a.Text,
+                                Description = a.Description,
+                                Rating = a.Rating
+                            });
+                        };
+                        newQuestions.Add(new SetQuestion { 
+                            Order = q.Order, 
+                            Description = q.Description, 
+                            Points = q.Points, 
+                            Text = q.Text, 
+                            SetRoleId = RolesTransition[q.SetRoleId],
+                            SetTermId = TermsTransition[q.SetTermId],
+                            Answers = answers
+                        });
+                    }
+                }
+            }
+
+            foreach (var q in newQuestions)
+            {
+                _context.SetQuestions.Add(q);
+            }
+            _context.SaveChanges();
+                
             return CreatedAtAction("GetSet", new { id = newSet.Id }, newSet);
         }
 

@@ -37,5 +37,6 @@ namespace PslibTheses.ViewModels
         public DateTime Updated { get; set; }
         public string ClassName { get; set; }
         public int Year { get; set; }
+        public ICollection<WorkRole> Roles { get; set; }
     }
 }
