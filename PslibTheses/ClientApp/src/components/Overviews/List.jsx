@@ -11,10 +11,14 @@ import axios from "axios";
 import styled from 'styled-components';
 
 const FeaturesContainer = styled.div`
+border: 1px solid black;
+padding: 5px;
 display: flex;
 flex-direction: row;
-margin: .5rem;
 gap: .5em;
+margin: 5px 0;
+align-items: baseline;
+background-color: #cfcfcf;
 `;
 
 const LOCAL_STORAGE_ID = "prace2-overviewworks-state";
@@ -35,6 +39,8 @@ export const List = ({ set, roles, terms }) => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const [mode, setMode] = useState(MODE_OVERALL);
+    const [evaluator, setEvaluator] = useState("");
+    const [evaluators, setEvaluators] = useState([]);
     const [term, setTerm] = useState((terms && terms.length > 0) ? 0 : null);
 
     let storedTableState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ID));
@@ -58,6 +64,19 @@ export const List = ({ set, roles, terms }) => {
         })),
         { Header: "Akce", Cell: (data) => (<><Link to={"/works/" + data.row.original.id}>Detail</Link> <Link to={"/works/" + data.row.original.id + "/overview"}>Hodnocení</Link></>) }
     ], [mode, term]);
+
+    const fetchEvaluators = useCallback((setId) => {
+        axios.get(process.env.REACT_APP_API_URL + "/sets/" + set.id + "/evaluators", { headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" } })
+            .then(response => {
+                setEvaluators(response.data);
+            })
+            .catch(error => {
+                setEvaluators([]);
+            })
+            .then(() => {
+                
+            });
+    },[]);
 
     const fetchData = useCallback(({ page = 0, size = 100, sort = [], filters = [] }) => {
         (async () => {
@@ -87,6 +106,9 @@ export const List = ({ set, roles, terms }) => {
                     }
                 }
             }
+            if (evaluator !== "") {
+                parameters.push("evaluatorId=" + evaluator);
+            }
             axios.get(process.env.REACT_APP_API_URL + "/works?setId=" + set.id + "&" + parameters.join("&"), { headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" } })
                 .then(response => {
                     setData(response.data.data);
@@ -104,20 +126,26 @@ export const List = ({ set, roles, terms }) => {
                     setIsLoading(false);
                 });
         })();
-    }, [accessToken]);
+    }, [accessToken, evaluator]);
 
     useEffect(() => {
         setShowDelete(false);
         setIsDeleting(false);
+        fetchEvaluators(set.Id);
         return () => { setShowDelete(false); setIsDeleting(false); };
     }, [setShowDelete, setIsDeleting]);
 
     return (
         <>
             <FeaturesContainer>
+                <span>Další filtry:</span>
+                <Select onChange={e => { setEvaluator(e.target.value) }} value={evaluator} >
+                    <option value="">-- Hodnotitel --</option>
+                    {evaluators.map((item, index) => (<option key={index} value={item.id} >{item.name}</option>))}
+                </Select>
                 <Select onChange={e => { setMode(e.target.value) }} value={mode} >
                     <option value={ MODE_TERM } >Hodnocení v termínech</option>
-                    <option value={MODE_OVERALL} >Celkové hodnocení</option>
+                    <option value={ MODE_OVERALL } >Celkové hodnocení</option>
                 </Select>
                 {mode === MODE_TERM
                     ?
@@ -126,7 +154,7 @@ export const List = ({ set, roles, terms }) => {
                     </Select>
                     :
                     null
-                }  
+                }
             </FeaturesContainer>
             <DataTable
                 columns={columns}

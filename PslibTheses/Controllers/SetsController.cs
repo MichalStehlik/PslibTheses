@@ -936,5 +936,18 @@ namespace PslibTheses.Controllers
             }
             return NotFound("answer not found");
         }
+
+        [HttpGet("{id}/evaluators")]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        public async Task<ActionResult<SetAnswer>> GetSetEvaluators(int id)
+        {
+            var set = await _context.Sets.FindAsync(id);
+            if (set == null)
+            {
+                return NotFound("set not found");
+            }
+            var users = await _context.WorkRoleUsers.Include(wro => wro.WorkRole).ThenInclude(wr => wr.Work).Include(wro => wro.User).Where(wro => wro.WorkRole.Work.SetId == id).Select(wru => wru.User).Distinct().OrderBy(u => u.LastName).ToListAsync();
+            return Ok(users);
+        }
     }
 }

@@ -2559,7 +2559,7 @@ namespace PslibTheses.Controllers
 
         [HttpGet("{ids}/list")]
         [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
-        public async Task<ActionResult> DownloadList(string ids)
+        public async Task<ActionResult> DownloadList(string ids, string splitter = ";")
         {
             string[] workIdStrings = ids.Split(",");
             List<int> worksId = new List<int>();
@@ -2583,18 +2583,21 @@ namespace PslibTheses.Controllers
             var csvContent = new StringBuilder();
             foreach (var work in works)
             {
-                csvContent.Append($"{work.Name};{work.State};{work.Author.Name};{work.ClassName};");
+                csvContent.Append($"{work.Name}{splitter}{work.State}{splitter}{work.Author.Name}{splitter}{work.ClassName}{splitter}");
                 foreach (var role in work.Roles)
                 {
                     var users = role.WorkRoleUsers.Select(wru => wru.User.Name).ToArray();
                     csvContent.Append(String.Join(" + ",users));
-                    csvContent.Append($";{role.MarkText};");
+                    csvContent.Append($"{splitter}{role.MarkText}{splitter}");
                 }
                 csvContent.AppendLine();
             }
 
-            MemoryStream memory = new(Encoding.Latin1.GetBytes(csvContent.ToString()));
-            return File(memory, "text/html", "seznam.csv");
+            var data = Encoding.UTF8.GetBytes(csvContent.ToString());
+            var result = Encoding.UTF8.GetPreamble().Concat(data).ToArray();
+            return File(result, "application/csv", "seznam.csv");
+            //MemoryStream memory = new(Encoding.UTF8.GetBytes(csvContent.ToString()));
+            //return File(memory, "text/html", "seznam.csv");
         }
     }
 }
