@@ -90,7 +90,12 @@ const State = ({id, fetchData, data}) => {
                     .catch(error => {
                         if (error.response)
                         {
-                            dispatch({type: ADD_MESSAGE, text: "Stav práce se nepodařilo změnit. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3});
+                            if (error.response.data == "unfinalized role") {
+                                dispatch({ type: ADD_MESSAGE, text: "Stav práce se nepodařilo změnit, protože hodnocení v některé roli není dokončeno.", variant: "error", dismissible: true, expiration: 8 });
+                            }
+                            else {
+                                dispatch({ type: ADD_MESSAGE, text: "Stav práce se nepodařilo změnit. (" + error.response.status + " " + error.response.data + ")", variant: "error", dismissible: true, expiration: 3 });
+                            }                       
                         }
                         else
                         {

@@ -1359,7 +1359,20 @@ namespace PslibTheses.Controllers
                 {
                     return BadRequest("state transition is not valid");
                 }
-            }           
+                if (newState == WorkState.Evaluated)
+                {
+                    await _context.Entry(work).Collection(w => w.Roles).LoadAsync();
+                    bool allFinalized = true;
+                    foreach (var role in work.Roles)
+                    {
+                        if (role.Finalized == false)
+                        {
+                            allFinalized = false;
+                        }
+                    }
+                    if (!allFinalized) return BadRequest("unfinalized role");
+                }
+            }
             work.State = newState;
             _context.SaveChanges();
             return newState;
@@ -1374,7 +1387,22 @@ namespace PslibTheses.Controllers
             {
                 return NotFound("work not found");
             }
-            var roles = _context.WorkRoles.Include(wr => wr.SetRole).Include(wr => wr.WorkRoleUsers).Where(wr => wr.WorkId == work.Id).ToList();
+            List<WorkRole> roles;
+            var isEvaluator = await _authorizationService.AuthorizeAsync(User, "AdministratorOrManagerOrEvaluator");
+            if (!isEvaluator.Succeeded && work.State < WorkState.Evaluated)
+            {
+                roles = _context.WorkRoles.Include(wr => wr.SetRole).Include(wr => wr.WorkRoleUsers).Where(wr => wr.WorkId == work.Id).AsNoTracking().ToList();
+                foreach (var role in roles)
+                {
+                    role.MarkValue = 0;
+                    role.MarkText = "?";
+                    role.Mark = "?";
+                }
+            }
+            else
+            {
+                roles = _context.WorkRoles.Include(wr => wr.SetRole).Include(wr => wr.WorkRoleUsers).Where(wr => wr.WorkId == work.Id).ToList();
+            }           
             return roles;
         }
 
@@ -1387,8 +1415,6 @@ namespace PslibTheses.Controllers
                 return NotFound("work not found");
             }
             var role = _context.WorkRoles
-                //.Include(wr => wr.SetRole)
-                //.Include(wr => wr.WorkRoleUsers)
                 .Where(wr => (wr.WorkId == work.Id && wr.Id == workRoleId)).FirstOrDefault();
             _context.Entry(role).Reference(wr => wr.SetRole).Load();
             _context.Entry(role).Collection(wr => wr.WorkRoleUsers).Load();
@@ -1898,10 +1924,10 @@ namespace PslibTheses.Controllers
                     TotalQuestions = setQuestionsStats.Questions,
                     TotalPoints = setQuestionsStats.Points,
                     FilledQuestions = answeredQuestions,
-                    GainedPoints = answeredPoints,
-                    FilledPoints = maxPoints,
-                    CriticalAnswers = criticals,
-                    CriticalInTerm = criticalsInTerm
+                    GainedPoints = 0,
+                    FilledPoints = 0,
+                    CriticalAnswers = 0,
+                    CriticalInTerm = 0
                 });
             }
         }

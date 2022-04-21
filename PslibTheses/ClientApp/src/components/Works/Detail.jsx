@@ -82,7 +82,7 @@ export const Detail = props => {
             setEvaluators([]);
         })
     },[accessToken]);
-    useEffect(()=>{ dispatch({type: SET_TITLE, payload: "Detail práce"});},[dispatch]);
+    useEffect(()=>{ dispatch({type: SET_TITLE, payload: response ? ("Práce: " + response.name) : "Detail práce"});},[dispatch, response]);
     useEffect(()=>{
         fetchData();
         fetchEvaluatorsData();

@@ -43,7 +43,7 @@ export const Detail = props => {
         });
         setIsLoading(false);
     },[accessToken, id]);
-    useEffect(()=>{ dispatch({type: SET_TITLE, payload: "Detail námětu"});},[dispatch]);
+    useEffect(() => { dispatch({ type: SET_TITLE, payload: response ? ("Námět: " + response.name) : "Detail námětu" }); }, [dispatch, response]);
     useEffect(()=>{fetchData();},[fetchData]);
     if (isLoading) {
         return <Loader size="2em"/>;
