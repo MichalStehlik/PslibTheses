@@ -99,7 +99,7 @@ const Edit = props => {
                 <FormTextInput name="name" label="Název" placeholder="MP 2021/22" />
                 <FormTextInput name="year" label="Rok" type="number" placeholder="2020" />
                 <FormCheckbox name="active" label="Aktivní" />
-                <FormRadioGroup name="template" label="Šablona" values={{0: "Maturitní práce", 1: "Ročníkové práce"}} />
+                    <FormRadioGroup name="template" label="Šablona" values={{ 0: "Maturitní práce", 1: "Ročníkové práce", 2: "Absolventské práce"}} />
                 <FormSelect name="scale" label="Standardní škála známek">
                     <option></option>
                     {Array.isArray(scales) ? scales.map((item,index) => (<option key={index} value={item.id}>{item.name}</option>)) : ""}
