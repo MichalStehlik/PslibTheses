@@ -340,6 +340,94 @@ namespace PslibTheses.Controllers
             return NoContent();
         }
 
+        [HttpPut("{id}/author/{newState}")]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        public async Task<ActionResult<bool>> PutUserAuthor(Guid id, bool newState)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                _logger.LogError("user not found, so cannot be updated", id);
+                return BadRequest();
+            }
+
+            if (!User.HasClaim(Definitions.THESES_ADMIN_CLAIM, "1"))
+            {
+                return Unauthorized("only privileged user can edit user record");
+            }
+
+            _context.Entry(user).State = EntityState.Modified;
+
+            try
+            {
+                user.CanBeAuthor = newState;
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    _logger.LogError("storing of user rights has failed", user);
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("storing of user rights has failed", ex, user);
+                throw;
+            }
+            _logger.LogInformation("state of user rights changed", user);
+            return Ok(newState);
+        }
+
+        [HttpPut("{id}/evaluator/{newState}")]
+        [Authorize(Policy = "AdministratorOrManagerOrEvaluator")]
+        public async Task<ActionResult<bool>> PutUserEvaluator(Guid id, bool newState)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                _logger.LogError("user not found, so cannot be updated", id);
+                return BadRequest();
+            }
+
+            if (!User.HasClaim(Definitions.THESES_ADMIN_CLAIM, "1"))
+            {
+                return Unauthorized("only privileged user can edit user record");
+            }
+
+            _context.Entry(user).State = EntityState.Modified;
+
+            try
+            {
+                user.CanBeEvaluator = newState;
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    _logger.LogError("storing of user rights has failed", user);
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("storing of user rights has failed", ex, user);
+                throw;
+            }
+            _logger.LogInformation("state of user rights changed", user);
+            return Ok(newState);
+        }
+
         // GET: /Users/aaa/icon
         /// <summary>
         /// Gets content of user icon as file

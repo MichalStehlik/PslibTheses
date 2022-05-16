@@ -1,8 +1,8 @@
 import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import {Link} from "react-router-dom";
-import {DataTable, BoolColumnFilter, ListColumnFilter, ActionLink} from "../../general";
+import {DataTable, BoolColumnFilter, ListColumnFilter, ActionLink, ButtonBlock, Button, Modal, Paragraph} from "../../general";
 import {Genders} from "../../../configuration/constants";
-import {useAppContext, SET_TITLE} from "../../../providers/ApplicationProvider";
+import { useAppContext, SET_TITLE, ADD_MESSAGE } from "../../../providers/ApplicationProvider";
 import axios from "axios";
 
 const LOCAL_STORAGE_ID = "prace2-adminusers-state";
@@ -14,6 +14,10 @@ const List = props => {
     const [data, setData] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
     const [{ accessToken }, dispatch] = useAppContext();
+
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [showDelete, setShowDelete] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     let storedTableState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ID));
 
@@ -91,7 +95,160 @@ const List = props => {
                 error={error}
                 totalPages={totalPages}
                 storageId={LOCAL_STORAGE_ID}
+                showRowSelect={true}
+                setSelectedRows={setSelectedRows}
                 initialState={storedTableState} />
+            {selectedRows.length > 0
+                ?
+                <ButtonBlock>
+                    <Button size="8pt" variant="warning" onClick={e => {
+                        for (var w of selectedRows) {
+                            axios.put(process.env.REACT_APP_API_URL + "/users/" + w.id + "/author/true", {
+                                newValue: 1
+                            }, {
+                                headers: {
+                                    Authorization: "Bearer " + accessToken,
+                                    "Content-Type": "application/json"
+                                }
+                            })
+                                .then(response => {
+                                    dispatch({ type: ADD_MESSAGE, text: "Práva uživatele byla změněna.", variant: "success", dismissible: true, expiration: 3 });
+                                })
+                                .catch(error => {
+                                    if (error.response) {
+                                        dispatch({ type: ADD_MESSAGE, text: "Práva uživatele se nepodařilo změnit. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3 });
+                                    }
+                                    else {
+                                        dispatch({ type: ADD_MESSAGE, text: "Práva uživatele se nepodařilo změnit.", variant: "error", dismissible: true, expiration: 3 });
+                                    }
+                                })
+                                .then(() => {
+                                    fetchData({ page: 0, size: 100, sort: [], filters: [] });
+                                })
+                        }
+                    }}>Je autor</Button>
+                    <Button size="8pt" variant="warning" onClick={e => {
+                        for (var w of selectedRows) {
+                            axios.put(process.env.REACT_APP_API_URL + "/users/" + w.id + "/author/false", {
+                                newValue: 0
+                            }, {
+                                headers: {
+                                    Authorization: "Bearer " + accessToken,
+                                    "Content-Type": "application/json"
+                                }
+                            })
+                                .then(response => {
+                                    dispatch({ type: ADD_MESSAGE, text: "Práva uživatele byla změněna.", variant: "success", dismissible: true, expiration: 3 });
+                                })
+                                .catch(error => {
+                                    if (error.response) {
+                                        dispatch({ type: ADD_MESSAGE, text: "Práva uživatele se nepodařilo změnit. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3 });
+                                    }
+                                    else {
+                                        dispatch({ type: ADD_MESSAGE, text: "Práva uživatele se nepodařilo změnit.", variant: "error", dismissible: true, expiration: 3 });
+                                    }
+                                })
+                                .then(() => {
+                                    fetchData({ page: 0, size: 100, sort: [], filters: [] });
+                                })
+                        }
+                    }}>Není autor</Button>
+                    <Button size="8pt" variant="warning" onClick={e => {
+                        for (var w of selectedRows) {
+                            axios.put(process.env.REACT_APP_API_URL + "/users/" + w.id + "/evaluator/true", {
+                                newValue: 1
+                            }, {
+                                headers: {
+                                    Authorization: "Bearer " + accessToken,
+                                    "Content-Type": "application/json"
+                                }
+                            })
+                                .then(response => {
+                                    dispatch({ type: ADD_MESSAGE, text: "Práva uživatele byla změněna.", variant: "success", dismissible: true, expiration: 3 });
+                                })
+                                .catch(error => {
+                                    if (error.response) {
+                                        dispatch({ type: ADD_MESSAGE, text: "Práva uživatele se nepodařilo změnit. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3 });
+                                    }
+                                    else {
+                                        dispatch({ type: ADD_MESSAGE, text: "Práva uživatele se nepodařilo změnit.", variant: "error", dismissible: true, expiration: 3 });
+                                    }
+                                })
+                                .then(() => {
+                                    fetchData({ page: 0, size: 100, sort: [], filters: [] });
+                                })
+                        }
+                    }}>Je hodnotitel</Button>
+                    <Button size="8pt" variant="warning" onClick={e => {
+                        for (var w of selectedRows) {
+                            axios.put(process.env.REACT_APP_API_URL + "/users/" + w.id + "/evaluator/false", {
+                                newValue: 0
+                            }, {
+                                headers: {
+                                    Authorization: "Bearer " + accessToken,
+                                    "Content-Type": "application/json"
+                                }
+                            })
+                                .then(response => {
+                                    dispatch({ type: ADD_MESSAGE, text: "Práva uživatele byla změněna.", variant: "success", dismissible: true, expiration: 3 });
+                                })
+                                .catch(error => {
+                                    if (error.response) {
+                                        dispatch({ type: ADD_MESSAGE, text: "Práva uživatele se nepodařilo změnit. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3 });
+                                    }
+                                    else {
+                                        dispatch({ type: ADD_MESSAGE, text: "Práva uživatele se nepodařilo změnit.", variant: "error", dismissible: true, expiration: 3 });
+                                    }
+                                })
+                                .then(() => {
+                                    fetchData({ page: 0, size: 100, sort: [], filters: [] });
+                                })
+                        }
+                    }}>Není hodnotitel</Button>
+                    <Button size="8pt" variant="danger" onClick={() => { setShowDelete(true) }} disabled={isDeleting}>{!isDeleting ? "Smazání" : "Pracuji"}</Button>
+                 </ButtonBlock>
+                 :
+                null
+            }
+            <Modal
+                active={showDelete}
+                variant="danger"
+                onDismiss={() => setShowDelete(false)}
+                title="Opravdu smazat uživatele?"
+                actions={
+                    <>
+                        <Button outline variant="light" onClick={async () => {
+                            setIsDeleting(true);
+                            for (var w of selectedRows) {
+                                axios.delete(process.env.REACT_APP_API_URL + "/users/" + w.id, { headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" } })
+                                    .then(response => {
+                                        dispatch({ type: ADD_MESSAGE, text: "Uživatel " + w.name + " byla smazána.", variant: "success", dismissible: true, expiration: 3 });
+                                    })
+                                    .catch(error => {
+                                        if (error.response) {
+                                            dispatch({ type: ADD_MESSAGE, text: "Smazání uživatele se nepodařilo. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3 });
+                                        }
+                                        else {
+                                            dispatch({ type: ADD_MESSAGE, text: "Smazání uživatele se nepodařilo.", variant: "error", dismissible: true, expiration: 3 });
+                                        }
+                                    })
+                                    .then(() => {
+                                        setIsDeleting(false);
+                                        setShowDelete(false);
+                                        fetchData({ page: 0, size: 100, sort: [], filters: [] });
+                                    });
+                            }
+                        }}>Smazat</Button>
+                        <Button outline variant="light" onClick={async () => { setShowDelete(false); }}>Storno</Button>
+                    </>
+                }
+            >
+                <Paragraph>Chystáte se smazat následující uživatele:</Paragraph>
+                <ol>
+                    {selectedRows.map((item, index) => (<li key={index}>{item.lastName + " " + item.firstName}</li>))}
+                </ol>
+                <Paragraph>Takto smazané uživatele nebude možné nijak obnovit.</Paragraph>
+            </Modal>
       </>
     );
 }

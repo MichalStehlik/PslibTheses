@@ -14,22 +14,22 @@
         }
         @@media print {
             @@page {
-                size: auto;
-                margin: 0;
+                size: /*auto*/ A4;
+                margin: 1cm;
                 margin-bottom: 1cm;
 
                 @@bottom-center {
                     border-top: .25pt solid #666;
-                    content: counter(page) " / " counter(pages);
+                    content: counter(page);
                     font-size: 9pt;
                     color: #333;
                 }
             }
-            @@page :blank {
+            @@page:blank {
                 @@top-center { content: "This page is intentionally left blank." }
             }
             body {
-                margin: 1.6cm;
+                /*margin: 1.6cm;*/
             }
         }
         h1, h2, h3, h4, h5 {
@@ -53,6 +53,10 @@
             width: 100%;
             border-collapse: collapse;
         }
+        table { page-break-inside:auto }
+        tr    { page-break-inside:avoid; page-break-after:auto }
+        thead { display:table-header-group; }
+        tfoot { display:table-footer-group; }
         table td, table th {
             text-align: left;
             padding: 3px 0;
@@ -65,7 +69,7 @@
             table-layout: fixed;
         }
         table td.number-column {
-            top1cm;
+            top:1cm;
         }
         table td.vertical-top {
             vertical-align: top;
@@ -100,6 +104,8 @@
         }
         article {
             page-break-after: always;
+            page-break-after: right;
+            /*margin-top: 1cm;*/
         }
         section {
             margin-bottom: 5px;
@@ -119,6 +125,9 @@
         }
         .signature-space {
             padding-top: 1cm;
+        }
+        .signature-block {
+            page-break-inside: avoid;
         }
     </style>
 </head>

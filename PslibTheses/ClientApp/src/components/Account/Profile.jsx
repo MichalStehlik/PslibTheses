@@ -1,14 +1,14 @@
-import React from 'react';
-import {useAppContext} from "../../providers/ApplicationProvider";
+import React, { useEffect} from 'react';
+import { useAppContext, SET_TITLE } from "../../providers/ApplicationProvider";
 import {Button, Card, CardContainer, CardHeader, CardBody, Subheading, CardTypeValueList, CardTypeValueItem} from "../general";
 
 const Profile = props => {
-    const [{accessToken, userManager, profile, profileIcon, profileIconType}] = useAppContext();
+    const [{ accessToken, userManager, profile, profileIcon, profileIconType }, dispatch] = useAppContext();
+    useEffect(() => { dispatch({ type: SET_TITLE, payload: "Uživatelský profil" }); }, [dispatch]);
     if (accessToken)
     {
         return (
             <>
-                <Button onClick={() => {userManager.signoutRedirect()}}>Odhlásit</Button>
                 <CardContainer>
                 <Card>
                     <CardHeader><Subheading>Profil</Subheading></CardHeader>

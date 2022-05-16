@@ -14,6 +14,8 @@ const Title = props => {
             <li><Link to="/admin/sets">Sady</Link></li>
             <li><Link to="/admin/scales">Škály</Link></li>
             <li><Link to="/admin/users">Uživatelé</Link></li>
+            <li><Link to="/console">Konzola API</Link></li>
+            <li><Link to="/test">Test rozhraní</Link></li>
         </ul>
         </>
     );
