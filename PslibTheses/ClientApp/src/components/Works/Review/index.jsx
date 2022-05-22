@@ -1,23 +1,29 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from "react-router-dom";
-import { useAppContext, SET_TITLE } from "../../../providers/ApplicationProvider";
-import { ActionLink, PageTitle, Alert, CardContainer, Card, CardHeader, CardBody, CardTypeValueList, CardTypeValueItem, Heading, Loader, TableWrapper, Table, TableRow, TableHeader, TableBody, HeadCell, DataCell, CardFooter, TableFooter } from "../../general";
+import { useAppContext, SET_TITLE, ADD_MESSAGE } from "../../../providers/ApplicationProvider";
+import {
+    ActionLink, Alert, CardContainer, Card, CardHeader, CardBody,
+    CardTypeValueList, CardTypeValueItem, Heading, Loader,
+    Button, Form, FormGroup, Subheading, useInterval
+} from "../../general";
 import LoadedUser from "../../common/LoadedUser";
-import DateTime from "../../common/DateTime";
-import styled from 'styled-components';
+import { Formik, ErrorMessage } from 'formik';
+import CKEditor from '@ckeditor/ckeditor5-react';
+import Editor from '@ckeditor/ckeditor5-build-inline';
 import axios from "axios";
 import requireEvaluator from "../../Auth/requireEvaluator";
-import Text from "./Text";
 import Mark from "./Mark";
 import Questions from "./Questions";
 
 const Review = props => {
     const { id } = useParams();
     const { role } = useParams();
-    const [{ accessToken, profile }, dispatch] = useAppContext();
+    const [{ accessToken }, dispatch] = useAppContext();
     const [isWorkLoading, setIsWorkLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [workError, setWorkError] = useState(false);
     const [workData, setWorkData] = useState(null);
+    const [review, setReview] = useState(null);
     const [roleData, setRoleData] = useState(null);
     const [isRoleLoading, setIsRoleLoading] = useState(false);
     const [roleError, setRoleError] = useState(false);
@@ -67,6 +73,35 @@ const Review = props => {
                 setIsRoleLoading(false);
             })
     }, [accessToken]);
+
+    const storeTextReview = () => {
+        setIsSaving(true);
+        axios.put(process.env.REACT_APP_API_URL + "/works/" + id + "/roles/" + role + "/review", {
+            WorkId: Number(id),
+            WorkRoleId: Number(role),
+            Review: review
+        }, {
+            headers: {
+                Authorization: "Bearer " + accessToken,
+                "Content-Type": "application/json"
+            }
+        })
+            .then(response => {
+                dispatch({ type: ADD_MESSAGE, text: "Posudek byl uložen.", variant: "success", dismissible: true, expiration: 3 });
+            })
+            .catch(error => {
+                if (error.response) {
+                    dispatch({ type: ADD_MESSAGE, text: "Uložení posudku se nepodařilo. (" + error.response.status + ")", variant: "error", dismissible: true, expiration: 3 });
+                }
+                else {
+                    dispatch({ type: ADD_MESSAGE, text: "Uložení posudku se nepodařilo.", variant: "error", dismissible: true, expiration: 3 });
+                }
+            })
+            .then(() => {
+                setIsSaving(false);
+            });
+    }
+
     useEffect(() => {
         fetchWorkData(id);
         dispatch({ type: SET_TITLE, payload: "Posudek práce" });
@@ -76,6 +111,13 @@ const Review = props => {
             fetchRoleData(id, role);
         }
     }, [role, workData, fetchRoleData, id]);
+    useEffect(() => {
+        if (roleData)
+            setReview(roleData.review);
+    }, [roleData]);
+
+    useInterval(() => { storeTextReview(); }, 3 * 60000);
+
     return (
         <>
             <ActionLink to={"/works/" + id}>Tato práce</ActionLink>
@@ -124,9 +166,66 @@ const Review = props => {
                                 {!role.finalized && !(workData.state !== 1 && workData.state !== 3)
                                     ?
                                     <>
-                                        <Text work={workData} role={roleData} />
+                                        <Card>
+                                            <CardHeader>
+                                                <Subheading>Text posudku</Subheading>
+                                            </CardHeader>
+                                            <CardBody>
+                                                <Formik
+                                                    initialValues={{
+                                                        review: review ? review : "",
+                                                    }}
+                                                    validate={values => {
+                                                        let errors = {};
+                                                        return errors;
+                                                    }}
+                                                    onSubmit={async (values, { setSubmitting }) => {
+                                                        setSubmitting(true);
+                                                        storeTextReview();
+                                                        setSubmitting(false);
+                                                    }}
+                                                >
+                                                    {({ isSubmitting, errors, touched, values, setFieldValue, handleBlur, isValid, dirty }) => (
+                                                        <Form>
+                                                            <FormGroup>
+                                                                <CKEditor
+                                                                    editor={Editor}
+                                                                    type="inline"
+                                                                    data={values.review}
+                                                                    config={
+                                                                        {
+                                                                            toolbar: [
+                                                                                'bold', 'italic', '|',
+                                                                                'link', '|',
+                                                                                'bulletedList', 'numberedList', '|',
+                                                                                'insertTable', '|',
+                                                                            ], placeholder: "Jeden až několik stručných odstavců."
+                                                                        }
+                                                                    }
+                                                                    onInit={editor => { }}
+                                                                    onChange={(event, editor) => {
+                                                                        const data = editor.getData();
+                                                                        setReview(data);
+                                                                        setFieldValue("review", data, true);
+                                                                    }}
+                                                                    onBlur={(event, editor) => {
+                                                                    }}
+                                                                    onFocus={(event, editor) => {
+                                                                    }}
+                                                                />
+                                                                <ErrorMessage name="review">{msg => <Alert variant="error" text={msg} />}</ErrorMessage>
+                                                            </FormGroup>
+                                                            <div>
+                                                                <Button type="submit" variant="primary" disabled={!(isValid || isSubmitting)}>{!isSubmitting ? "Uložení" : "Pracuji"}</Button>
+                                                                {isSaving ? <Loader /> : null}
+                                                            </div>
+                                                        </Form>
+                                                    )}
+                                                </Formik>
+                                            </CardBody>
+                                        </Card>
                                         <Questions work={workData} role={roleData} />
-                                        <Mark work={workData} role={ roleData} />                                 
+                                        <Mark work={workData} role={roleData} storeTextAction={storeTextReview} />
                                     </>
                                     :
                                     null

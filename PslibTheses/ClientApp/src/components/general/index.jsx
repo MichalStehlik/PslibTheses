@@ -43,5 +43,6 @@ export {Row}  from './Grid';
 export {default as PageTitle} from "./PageTitle";
 export {default as Subheading}  from './Subheading';
 export {Table, TextColumnFilter, BoolColumnFilter, ListColumnFilter, DataTable, TableRow, TableHeader, DataCell, HeadCell, TableBody, TableFooter, TableWrapper}  from './Table';
-export {default as useTimeout}  from './useTimeout';
+export { default as useTimeout } from './useTimeout';
+export { default as useInterval } from './useInterval';
 export {default as useFetch}  from './useFetch';

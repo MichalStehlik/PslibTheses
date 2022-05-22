@@ -1,5 +1,5 @@
 import React, {createContext, useReducer, useContext, useEffect} from "react";
-import { UserManager, WebStorageStateStore, Log } from "oidc-client";
+import { UserManager, WebStorageStateStore, Log } from "oidc-client-ts";
 import { IDENTITY_CONFIGURATION, METADATA_OIDC } from "../configuration/authorization";
 import axios from "axios";
 
@@ -45,8 +45,8 @@ const initialState = {
     profileIconType: null,
     theme: "light"
 }
-Log.logger = console;
-Log.level = Log.ERROR;//Log.DEBUG;
+Log.setLogger(console);
+Log.setLevel(Log.DEBUG);//Log.DEBUG;
 
 const parseJwt = token => {
     const base64Url = token.split(".")[1];

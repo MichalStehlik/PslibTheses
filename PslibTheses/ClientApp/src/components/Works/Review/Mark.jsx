@@ -1,13 +1,12 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext, ADD_MESSAGE } from "../../../providers/ApplicationProvider";
-import { Alert, Card, CardHeader, CardBody, Paragraph, CardTypeValueList, CardTypeValueItem, Heading, Subheading, Loader, TableWrapper, Table, TableRow, TableHeader, TableBody, HeadCell, DataCell, CardFooter, TableFooter, ButtonBlock, Button } from "../../general";
-import styled from 'styled-components';
+import { Alert, Card, CardHeader, CardBody, Paragraph, Subheading, Loader, ButtonBlock, Button } from "../../general";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
 import OverviewRoleStats from "../OverviewRoleStats";
 
-const Mark = ({ work, role }) => {
-    const [{ accessToken, profile }, dispatch] = useAppContext();
+const Mark = ({ work, role, storeTextAction }) => {
+    const [{ accessToken }, dispatch] = useAppContext();
     const [setData, setSetData] = useState(null);
     const [isSetLoading, setSetIsLoading] = useState(false);
     const [setError, setSetError] = useState(false);
@@ -122,6 +121,7 @@ const Mark = ({ work, role }) => {
                                 <ButtonBlock>
                                     {scalesData.map((item, index) => (
                                         <Button key={index} onClick={e => {
+                                            storeTextAction();
                                             storeMark(work.id, role.id, item.name, item.mark, true);
                                         }}>{item.name + " (" + (Number(item.rate) * 100) + "%)"}</Button>
                                 ))}
